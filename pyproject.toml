@@ -1,0 +1,29 @@
+[tool.ruff]
+# We want code to be formatted in a style of oldest Python version,
+# which rego supports (i.e. 3.6). But ruff supports only versions,
+# starting from 3.7, which is acceptable for us as well, because
+# it doesn't seem to break anything, test on Python3.6 are working.
+target-version = "py37"
+line-length = 100
+lint.select = [
+    "E",
+    "F",
+    "W",
+    "I",
+]
+
+[tool.mypy]
+follow_imports = "skip"
+ignore_missing_imports = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit/"]
+addopts = [
+    "-rs",
+    "-rw",
+    "-re",
+    "--cov-report=html",
+    "--cov-fail-under=90",
+    "--capture=tee-sys",  # Workaround for https://github.com/pytest-dev/pytest/issues/5997
+]

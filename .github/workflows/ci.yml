@@ -1,0 +1,22 @@
+name: rego
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+
+    runs-on: self-hosted
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Echo
+      run: echo Anton; ls -al; pwd
+    - name: Unit Tests
+      run: ./rego -d tests

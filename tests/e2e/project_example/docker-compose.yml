@@ -1,0 +1,18 @@
+services:
+  client:
+    build: dev/
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    volumes:
+      - ./:/app
+    working_dir: /app
+    depends_on:
+      server:
+        condition: service_started
+    stop_grace_period: 0.1s
+  server:
+    image: "python:3.9-alpine"
+    entrypoint: "python3 -m http.server 8000"
+    ports:
+      - "8000:8000"
+    stop_grace_period: 0.1s

@@ -1,0 +1,8 @@
+# pip-tools already installed globally in Docker image
+pytest
+pytest-cov
+pytest-mock
+toml
+# ruff is not supported on Python < 3.8, but we don't really need it.
+# mypy
+# types-toml

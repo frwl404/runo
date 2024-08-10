@@ -1,0 +1,18 @@
+[project]
+name = "rego"
+version = "0.0.1"
+description = "Tool for managing repository"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "mypy>=1.15.0",
+    "pytest>=8.3.4",
+    "pytest-cov>=6.0.0",
+    "pytest-mock>=3.14.0",
+    "ruff>=0.9.7",
+    "toml>=0.10.2",
+    "types-toml>=0.10.8.20240310",
+]

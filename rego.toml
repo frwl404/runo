@@ -1,0 +1,45 @@
+[[commands]]
+name = "e2e"
+description = "run end to end tests"
+execute = "python3 -m tests.e2e.run"
+
+[[commands]]
+name = "test"
+description = "run unit tests"
+execute = "scripts/test.sh"
+examples = ["tests --cov -vv", "tests --last-failed"]
+docker_container = "python39"
+docker_run_options = "-u 1000:1000 -it -v .:/app -w /app"
+
+[[commands]]
+name = "shell"
+description = "debug container by running shell in interactive mode (keep container running)"
+execute = "/bin/sh"
+docker_container = "python39"
+docker_run_options = "-it -v .:/app -w /app"
+
+[[commands]]
+name = "pre-commit"
+description = "quick checks/fixes of code formatting (ruff/mypy)"
+execute = "scripts/pre_commit.sh"
+docker_container = "python39"
+docker_run_options = "-v .:/app -w /app"
+
+[[commands]]
+name = "update-deps"
+description = "updates dependencies, used in project, to the latest versions"
+execute = "scripts/update_deps.sh"
+docker_container = "python39"
+docker_run_options = "-v .:/app -w /app"
+
+[[docker_containers]]
+name = "python36"
+docker_file_path = "containers/python36/Dockerfile"
+
+[[docker_containers]]
+name = "python39"
+docker_file_path = "containers/python39/Dockerfile"
+
+[[docker_containers]]
+name = "python312"
+docker_file_path = "containers/python312/Dockerfile"

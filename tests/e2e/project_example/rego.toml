@@ -1,0 +1,85 @@
+[[commands]]
+name = "example_native_single"
+description = "example of command, executing 1 linux command natively on your OS"
+execute = "echo PASSED"
+# e2e_tests = ["example_native_single|PASSED\n|0"]
+
+[[commands]]
+name = "example_native_single_with_error"
+description = "example of command, which fails"
+execute = "unknown_command"
+# e2e_tests = ["example_native_single_with_error||127"]
+
+[[commands]]
+name = "example_native_multi"
+description = "example of command, executing 2 linux commands natively on your OS"
+before = ["echo BE", "echo FOR"]
+execute = "echo PASSED"
+after = ["echo AFTER"]
+# e2e_tests = ["example_native_multi|BE\nFOR\nPASSED\nAFTER\n|0"]
+
+[[commands]]
+name = "example_native_script"
+description = "example of command, executing shell script natively on your OS. Provide any string as arg and it will be printed to console"
+examples = ["example_native_script say_hello"]
+before = ["echo OK"]
+execute = "dev/say.sh"
+# e2e_tests = ["example_native_script hello|OK\nyou asked to print 'hello'\n|0"]
+
+[[commands]]
+name = "example_docker_file_single"
+description = "example of command, executing 1 linux command in docker container, defined with docker file"
+docker_container = "container_defined_by_docker_file"
+docker_run_options = "-it -v .:/app -w /app --user 1000:1000"
+execute = "grep 'PRETTY_NAME' /etc/os-release"
+# e2e_tests = ["example_docker_file_single|PRETTY_NAME=\"Alpine Linux v3.20\"\r\n|0"]
+
+[[commands]]
+name = "example_docker_file_multi"
+description = "example of command, executing 2 linux commands in docker container, defined with docker file"
+docker_container = "container_defined_by_docker_file"
+docker_run_options = "-it -v .:/app -w /app --user 1000:1000"
+before = ["echo Your OS:"]
+execute = "grep 'PRETTY_NAME' /etc/os-release"
+# e2e_tests = ["example_docker_file_multi|Your OS:\r\nPRETTY_NAME=\"Alpine Linux v3.20\"\r\n|0"]
+
+[[commands]]
+name = "example_docker_file_script"
+description = "example of command, executing script in docker container, defined with docker file"
+docker_container = "container_defined_by_docker_file"
+docker_run_options = "-it -v .:/app -w /app --user 1000:1000"
+examples = ["example_docker_file_script say_hello"]
+before = ["echo Your OS:", "grep 'PRETTY_NAME' /etc/os-release"]
+execute = "dev/say.sh"
+# e2e_tests = ["example_docker_file_script hello_from_docker|Your OS:\r\nPRETTY_NAME=\"Alpine Linux v3.20\"\r\nyou asked to print 'hello_from_docker'\r\n|0"]
+
+[[commands]]
+name = "example_docker_compose_simple"
+description = "example of command, exicuting simple command from docker compose service"
+docker_container = "container_defined_by_docker_compose"
+docker_run_options = "--build -it"
+execute = "echo PASSED"
+# e2e_tests = ["example_docker_compose_simple|PASSED\r\n|0"]
+
+[[commands]]
+name = "example_docker_compose_test_client"
+description = "example of command, which depends on docker compose service"
+docker_container = "container_defined_by_docker_compose"
+docker_run_options = "--build -it"
+execute = "./dev/client.py"
+# e2e_tests = ["example_docker_compose_test_client|All tests passed\r\n|0"]
+
+[[docker_containers]]
+name = "container_defined_by_docker_file"
+docker_file_path = "dev/Dockerfile"
+docker_build_options = "--tag img-defined-by-docker-file"
+
+[[docker_containers]]
+name = "container_defined_by_repo_image"
+docker_image = "python:3.9-alpine"
+
+[[docker_containers]]
+name = "container_defined_by_docker_compose"
+docker_compose_file_path = "docker-compose.yml"
+docker_compose_options = "--file docker-compose.yml"
+docker_compose_service = "client"
