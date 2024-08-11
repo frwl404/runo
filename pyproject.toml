@@ -1,0 +1,11 @@
+[tool.ruff]
+line-length = 100
+lint.select = [
+    "E",
+    "F",
+    "W",
+    "I",
+]
+
+[tool.mypy]
+follow_imports = "skip"

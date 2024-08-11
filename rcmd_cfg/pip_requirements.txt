@@ -1,0 +1,5 @@
+mypy
+pip-tools
+pytest
+pytest-cov
+ruff

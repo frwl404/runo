@@ -1,3 +1,96 @@
 #!/usr/bin/python3
 
-print("Hello")
+import argparse
+import logging
+import os.path
+import sys
+from dataclasses import dataclass
+from typing import Optional
+
+TOOL_NAME = os.path.basename(__file__)
+RELATIVE_TOOL_PATH = f"./{TOOL_NAME}"
+DEFAULT_CFG_PATH = f"{RELATIVE_TOOL_PATH}.conf"
+
+OK = True
+
+_logger = logging.getLogger(TOOL_NAME)
+_logger.setLevel(logging.INFO)
+_logger.addHandler(logging.StreamHandler(sys.stdout))
+
+
+@dataclass
+class Cmd:
+    name: str
+    description: str
+    example: Optional[str] = None
+
+    def __str__(self):
+        return f"{self.name}: {self.description} [{self.example or self.name}]"
+
+
+INIT_CMD = Cmd(
+    name="init",
+    description=f"creates {TOOL_NAME} config template with basic repo commands and examples",
+    example=f"{RELATIVE_TOOL_PATH} init",
+)
+
+
+def _build_list_of_supported_commands():
+    pass
+
+
+def _get_commands_from_cfg(cfg_path: str) -> list[Cmd]:
+    return []
+
+
+def _get_supported_commands(cfg_path: str) -> list[Cmd]:
+    return _get_commands_from_cfg(cfg_path) or [INIT_CMD]
+
+
+def _repo_commands_str(intro: str) -> str:
+    res = [intro]
+    res.extend([f"  - {cmd}" for cmd in _get_supported_commands("cfg_path_here")])
+    return "\n".join(res)
+
+
+def main() -> bool:
+    if len(sys.argv) < 2:
+        _logger.info(_repo_commands_str("Following commands are available for this repo:"))
+        return OK
+
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("-h", "--help", action="store_true")
+    parser.add_argument(
+        "-c",
+        "--config-path",
+        default=DEFAULT_CFG_PATH,
+        help="relative path to rcmd config",
+    )
+    parser.add_argument(
+        "command",
+        nargs=argparse.REMAINDER,
+        help=f"exact command to be executed (might be supplemented with options). "
+             f"Try {RELATIVE_TOOL_PATH} to get list of available commands."
+    )
+
+    args = parser.parse_args()
+    _logger.info(f"{args}")
+
+    if args.help:
+        _logger.info("HELP")
+        return OK
+
+    if not args.command:
+        _logger.error(f"{_repo_commands_str('Please provide one of supported commands:')}")
+        return not OK
+
+    cmd = args.command[0]
+    options = args.command[1:]
+
+    _logger.info(f"Anton {args}; {args.command}; {cmd}; {options}")
+    if cmd == INIT_CMD.name:
+        _logger.info("Init here")
+
+
+if __name__ == "__main__":
+    main()
