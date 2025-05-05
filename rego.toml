@@ -36,6 +36,24 @@ execute = "scripts/update_deps.sh"
 docker_container = "python39"
 docker_run_options = "-v .:/app -w /app"
 
+[[commands]]
+name = "mypy"
+description = "runs 'mypy' static type checker"
+before = ["source /tmp/rego_venv/.venv/bin/activate"]
+execute = "mypy"
+examples = ["mypy rego tests"]
+docker_container = "python39"
+docker_run_options = "-v .:/app -w /app"
+
+[[commands]]
+name = "ruff"
+description = "runs 'ruff' (checker/formatter)"
+before = ["source /tmp/rego_venv/.venv/bin/activate"]
+execute = "ruff"
+examples = ["ruff check rego tests", "ruff format rego tests --check"]
+docker_container = "python39"
+docker_run_options = "-v .:/app -w /app"
+
 [[docker_containers]]
 name = "python36"
 docker_file_path = "containers/python36/Dockerfile"

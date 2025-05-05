@@ -2,21 +2,29 @@ name: rego
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "**" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "**" ]
 
 permissions:
   contents: read
 
 jobs:
-  test:
+  tests:
 
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Echo
-      run: echo Anton; ls -al; pwd
-    - name: Unit Tests
-      run: ./rego -d tests
+      - uses: actions/checkout@v4
+      # Static type checking
+      - name: mypy
+        run: ./rego mypy rego tests
+      # Linter
+      - name: ruff (linter)
+        run: ./rego ruff check rego tests
+      # Formatter
+      - name: ruff (formatter)
+        run: ./rego ruff format rego tests --check
+      # Finally tests
+      - name: unit tests
+        run: ./rego test
