@@ -566,13 +566,16 @@ def _get_container_config(target_container_name: str, cfg: dict) -> dict:
     return valid_containers[0]
 
 
+def _generate_bin_sh_cmd(commands: list[str]):
+    return ["/bin/sh", "-c", f"{' && '.join(commands)}"]
+
+
 def _generate_command_to_run(command_cfg: dict, command_options: List[str]) -> List[str]:
     before = command_cfg.get("before", [])
-    after = command_cfg.get("after", [])
 
     execute = " ".join([command_cfg["execute"]] + command_options)
 
-    return ["/bin/sh", "-c", f"{' && '.join(before + [execute] + after)}"]
+    return _generate_bin_sh_cmd(before + [execute])
 
 
 def _containers_to_use(
@@ -600,6 +603,13 @@ def _containers_to_use(
     return containers_to_use
 
 
+def _generate_cleanup_cmd(command_cfg: dict) -> Optional[list[str]]:
+    after = command_cfg.get("after")
+    if after:
+        return _generate_bin_sh_cmd(after)
+    return None
+
+
 def _run_command(
     command_name: str,
     command_options: List[str],
@@ -608,10 +618,14 @@ def _run_command(
 ) -> int:
     command_cfg = _get_command_config(command_name, cfg)
     command_to_run = _generate_command_to_run(command_cfg, command_options)
+    cleanup = _generate_cleanup_cmd(command_cfg)
 
     containers_to_use = _containers_to_use(cfg, command_cfg, containers_requested_via_cli)
     if not containers_to_use:
-        return _subprocess_run(command_to_run).returncode
+        res = _subprocess_run(command_to_run).returncode
+        if cleanup:
+            _subprocess_run(cleanup)
+        return res
 
     results = {}
     for container_name in containers_to_use:
@@ -620,6 +634,8 @@ def _run_command(
                 docker_run_options=_string_as_list(command_cfg.get("docker_run_options")),
                 command_to_run=command_to_run,
             ).returncode
+        if cleanup:
+            _subprocess_run(cleanup)
 
     if len(results) == 1:
         return list(results.values())[0]

@@ -114,6 +114,8 @@ the main part. Example:
 Similar to `before`, but executed after the main part. Example:
 - `["rm -f /tmp/unneeded_files*"]`
 
+Please note that these command are executed on host machine (not inside container).
+
 #### `docker_container` (`string`)
 
 Name of the container (defined in the same config), which should be used 

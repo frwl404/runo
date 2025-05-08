@@ -730,11 +730,17 @@ class BaseCommandsTest:
     @staticmethod
     def _generate_command_to_run(command_cfg: dict, command_options: List[str]) -> List[str]:
         before = command_cfg.get("before", [])
-        after = command_cfg.get("after", [])
 
         execute = " ".join([command_cfg["execute"]] + command_options)
 
-        return ["/bin/sh", "-c", f"{' && '.join(before + [execute] + after)}"]
+        return ["/bin/sh", "-c", f"{' && '.join(before + [execute])}"]
+
+    @staticmethod
+    def _generate_configured_cleanup(command_cfg: dict):
+        after = command_cfg.get("after")
+        if after:
+            return ["/bin/sh", "-c", f"{' && '.join(after)}"]
+        return []
 
     @staticmethod
     def _write_config_and_run_command(
@@ -781,6 +787,9 @@ class BaseCommandsTest:
     ):
         patched_run.return_value.returncode = 0
         expected_calls = self.expected_calls(fxtc_command, fxtc_run_options, fxtc_env_specific_data)
+        cleanup = self._generate_configured_cleanup(fxtc_command)
+        if cleanup:
+            expected_calls.extend([cleanup])
 
         std_out, std_err = self._write_config_and_run_command(
             argv_patcher=monkeypatch,
