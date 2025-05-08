@@ -572,7 +572,7 @@ def _generate_command_to_run(command_cfg: dict, command_options: List[str]) -> L
 
     execute = " ".join([command_cfg["execute"]] + command_options)
 
-    return ["/bin/sh", "-c", f"{'; '.join(before + [execute] + after)}"]
+    return ["/bin/sh", "-c", f"{' && '.join(before + [execute] + after)}"]
 
 
 def _containers_to_use(

@@ -727,16 +727,17 @@ class BaseCommandsTest:
     def expected_calls(self, command: dict, run_options: List[str], config_overrides: dict):
         raise NotImplementedError("should be implemented by subclasses")
 
-    def _generate_command_to_run(self, command_cfg: dict, command_options: List[str]) -> List[str]:
+    @staticmethod
+    def _generate_command_to_run(command_cfg: dict, command_options: List[str]) -> List[str]:
         before = command_cfg.get("before", [])
         after = command_cfg.get("after", [])
 
         execute = " ".join([command_cfg["execute"]] + command_options)
 
-        return ["/bin/sh", "-c", f"{'; '.join(before + [execute] + after)}"]
+        return ["/bin/sh", "-c", f"{' && '.join(before + [execute] + after)}"]
 
+    @staticmethod
     def _write_config_and_run_command(
-        self,
         argv_patcher,
         expected_rc,
         command_config: dict,
