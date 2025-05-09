@@ -278,6 +278,18 @@ def _get_value_from_options(all_options: Dict[str, Any], target_names: Set[str])
     return None
 
 
+def set_user_if_not_set_yet(docker_run_options: list[str]) -> list[str]:
+    """
+    By default, we want to run actual instructions inside container as
+    those user, which runs rego command on host. It is desired behavior
+    for most part of the cases, but it can be overridden by config.
+    """
+    user_already_set = {"-u", "--user"} & set(docker_run_options)
+    if not user_already_set:
+        docker_run_options.extend(["--user", "$(id -u):$(id -g)"])
+    return docker_run_options
+
+
 class Image:
     def __init__(self, container_cfg: dict):
         self._cfg = container_cfg
@@ -294,7 +306,7 @@ class Image:
         options_from_config = _string_as_list(self._cfg.get("docker_build_options"))
         option_to_value = _option_to_value(options_from_config)
 
-        generated_options = ["."]
+        generated_options = ["."]  # build in the current directory
         if not _get_value_from_options(option_to_value, {"-f", "--file"}):
             generated_options.extend(["--file", self._cfg["docker_file_path"]])
 
@@ -308,6 +320,7 @@ class Image:
         return tag
 
     def run(self, docker_run_options: List[str], command_to_run: str):
+        docker_run_options = set_user_if_not_set_yet(docker_run_options)
         full_docker_command = (
             ["docker", "run", "--quiet", "-e", f"REGO_CONTAINER_NAME={self._cfg['name']}"]
             + docker_run_options
@@ -350,6 +363,7 @@ class Composition:
     def run(
         self, docker_run_options: List[str], command_to_run: str
     ) -> subprocess.CompletedProcess:
+        docker_run_options = set_user_if_not_set_yet(docker_run_options)
         docker_compose_run_cmd = (
             [self.compose_base]
             + self._generated_options

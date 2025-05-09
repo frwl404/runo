@@ -13,7 +13,7 @@ execute = "pytest"
 after = ["rm -f rego.py", "rm -rf .coverage", "rm -rf tests/unit/__pycache__", "rm -rf __pycache__"]
 examples = ["tests --cov -vv", "tests --last-failed"]
 docker_container = "python39"
-docker_run_options = "-u 1000:1000 -it -v .:/app -w /app"
+docker_run_options = "-it -v .:/app -w /app"
 
 [[commands]]
 name = "shell"

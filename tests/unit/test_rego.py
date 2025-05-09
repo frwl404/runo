@@ -1014,9 +1014,14 @@ class TestLocallyBuiltContainerCommands(BaseCommandsTest):
             list_to_str(["docker", "build", "."] + helpers["expected_build_options"]),
             {"stdout": subprocess.DEVNULL},
         )
+
+        expected_docker_run_options = docker_run_options_str.split()
+        if not {"-u", "--user"} & set(expected_docker_run_options):
+            expected_docker_run_options.extend(["--user", "$(id -u):$(id -g)"])
+
         run_command = list_to_str(
             ["docker", "run", "--quiet", "-e", "REGO_CONTAINER_NAME=test_docker_file"]
-            + docker_run_options_str.split()
+            + expected_docker_run_options
             + [helpers["expected_tag"]]
             + [self._generate_command_to_run(command, run_options)]
         )
@@ -1066,9 +1071,13 @@ class TestContainerFromImageCommands(BaseCommandsTest):
         docker_run_options_str = command.get("docker_run_options", "")
         container_config = env_specific_data["config_overrides"]["docker_containers"][0]
 
+        expected_docker_run_options = docker_run_options_str.split()
+        if not {"-u", "--user"} & set(expected_docker_run_options):
+            expected_docker_run_options.extend(["--user", "$(id -u):$(id -g)"])
+
         run_command = list_to_str(
             ["docker", "run", "--quiet", "-e", "REGO_CONTAINER_NAME=test_image_from_repo"]
-            + docker_run_options_str.split()
+            + expected_docker_run_options
             + [container_config["docker_image"]]
             + [self._generate_command_to_run(command, run_options)]
         )
@@ -1162,6 +1171,9 @@ class TestDockerComposeServiceCommands(BaseCommandsTest):
         expected_docker_compose_file = env_specific_data["test_helpers"][
             "expected_docker_compose_file"
         ]
+        expected_docker_run_options = docker_run_options_str.split()
+        if not {"-u", "--user"} & set(expected_docker_run_options):
+            expected_docker_run_options.extend(["--user", "$(id -u):$(id -g)"])
 
         run_command = list_to_str(
             [
@@ -1172,7 +1184,7 @@ class TestDockerComposeServiceCommands(BaseCommandsTest):
                 *expected_docker_compose_options,
                 "run",
             ]
-            + docker_run_options_str.split()
+            + expected_docker_run_options
             + [container_config["docker_compose_service"]]
             + [self._generate_command_to_run(command, run_options)]
         )
@@ -1251,6 +1263,8 @@ class TestContainers:
                 "--quiet",
                 "-e",
                 f"REGO_CONTAINER_NAME={container_name}",
+                "--user",
+                "$(id -u):$(id -g)",
                 image_name,
                 "/bin/sh -c 'echo OK'",
             ]
