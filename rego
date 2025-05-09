@@ -201,9 +201,14 @@ class Logger:
 _logger: Logger
 
 
-def _subprocess_run(cmd: List[str], *args, **kwargs) -> subprocess.CompletedProcess:
+def _subprocess_run(cmd: str, **kwargs) -> subprocess.CompletedProcess:
     _logger.debug(f"running: {cmd}")
-    return subprocess.run(cmd, *args, **kwargs)
+    # We use 'shell=True', because want to support configurations,
+    # where client will want to provide environment variable to some arguments.
+    # For example, in case if we will have the following docker run options:
+    # "-u $(id -u):$(id -g)", we want substitution of env variables to happen
+    # automatically.
+    return subprocess.run(cmd, shell=True, **kwargs)
 
 
 # We do want to support Python3.6 because of this we can't use a lot of good things
@@ -298,26 +303,25 @@ class Image:
             tag = f"{self._cfg['name']}-for-{REPO_NAME}"
             generated_options.extend(["--tag", tag])
 
-        _subprocess_run(
-            ["docker", "build"] + generated_options + options_from_config, stdout=subprocess.DEVNULL
-        )
+        run = ["docker", "build"] + generated_options + options_from_config
+        _subprocess_run(" ".join(run), stdout=subprocess.DEVNULL)
         return tag
 
-    def run(self, docker_run_options: List[str], command_to_run: List[str]):
+    def run(self, docker_run_options: List[str], command_to_run: str):
         full_docker_command = (
             ["docker", "run", "--quiet", "-e", f"REGO_CONTAINER_NAME={self._cfg['name']}"]
             + docker_run_options
             + [self._img_tag]
-            + command_to_run
+            + [command_to_run]
         )
-        return _subprocess_run(full_docker_command)
+        return _subprocess_run(" ".join(full_docker_command))
 
     def cleanup(self):
         pass
 
 
 class Composition:
-    compose_base = ["docker", "compose"]
+    compose_base = "docker compose"
 
     def __init__(self, container_cfg: dict):
         self._cfg = container_cfg
@@ -344,28 +348,28 @@ class Composition:
             self._generated_options.extend(["--file", self._compose_file])
 
     def run(
-        self, docker_run_options: List[str], command_to_run: List[str]
+        self, docker_run_options: List[str], command_to_run: str
     ) -> subprocess.CompletedProcess:
         docker_compose_run_cmd = (
-            self.compose_base
+            [self.compose_base]
             + self._generated_options
             + self._compose_options_from_config
             + ["run"]
             + docker_run_options
             + [self._cfg["docker_compose_service"]]
-            + command_to_run
+            + [command_to_run]
         )
-        return _subprocess_run(docker_compose_run_cmd)
+        return _subprocess_run(" ".join(docker_compose_run_cmd))
 
     def cleanup(self):
         # Clean up after ourselves. It should be completely silent,
         # this is the reason why we redirect stdout and stderr to /dev/null
         _subprocess_run(
-            self.compose_base + ["down", "--remove-orphans"],
+            f"{self.compose_base} down --remove-orphans",
             stdout=subprocess.DEVNULL,
         )
         _subprocess_run(
-            self.compose_base + ["--file", self._compose_file, "rm", "-fsv"],
+            f"{self.compose_base} --file {self._compose_file} rm -fsv",
             stdout=subprocess.DEVNULL,
         )
 
@@ -386,7 +390,7 @@ class Container:
         self._docker_backend.cleanup()
 
     def run_command(
-        self, docker_run_options: List[str], command_to_run: List[str]
+        self, docker_run_options: List[str], command_to_run: str
     ) -> subprocess.CompletedProcess:
         return self._docker_backend.run(docker_run_options, command_to_run)
 
@@ -567,10 +571,10 @@ def _get_container_config(target_container_name: str, cfg: dict) -> dict:
 
 
 def _generate_bin_sh_cmd(commands: list[str]):
-    return ["/bin/sh", "-c", f"{' && '.join(commands)}"]
+    return f"/bin/sh -c '{' && '.join(commands)}'"
 
 
-def _generate_command_to_run(command_cfg: dict, command_options: List[str]) -> List[str]:
+def _generate_command_to_run(command_cfg: dict, command_options: List[str]) -> str:
     before = command_cfg.get("before", [])
 
     execute = " ".join([command_cfg["execute"]] + command_options)
@@ -603,7 +607,7 @@ def _containers_to_use(
     return containers_to_use
 
 
-def _generate_cleanup_cmd(command_cfg: dict) -> Optional[list[str]]:
+def _generate_cleanup_cmd(command_cfg: dict) -> Optional[str]:
     after = command_cfg.get("after")
     if after:
         return _generate_bin_sh_cmd(after)

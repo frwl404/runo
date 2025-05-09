@@ -13,6 +13,10 @@ from rego import main  # noqa
 _OK_EXIT_CODE_REGEX = f"^{os.EX_OK}$"
 
 
+def list_to_str(src: list, separator: str = " ") -> str:
+    return separator.join(src)
+
+
 @contextmanager
 def _config_file(content: str, config_path: pathlib.Path):
     with open(config_path, "w") as toml_file:
@@ -728,19 +732,19 @@ class BaseCommandsTest:
         raise NotImplementedError("should be implemented by subclasses")
 
     @staticmethod
-    def _generate_command_to_run(command_cfg: dict, command_options: List[str]) -> List[str]:
+    def _generate_command_to_run(command_cfg: dict, command_options: List[str]) -> str:
         before = command_cfg.get("before", [])
 
         execute = " ".join([command_cfg["execute"]] + command_options)
 
-        return ["/bin/sh", "-c", f"{' && '.join(before + [execute])}"]
+        return f"/bin/sh -c '{' && '.join(before + [execute])}'"
 
     @staticmethod
     def _generate_configured_cleanup(command_cfg: dict):
         after = command_cfg.get("after")
         if after:
-            return ["/bin/sh", "-c", f"{' && '.join(after)}"]
-        return []
+            return f"/bin/sh -c '{' && '.join(after)}'"
+        return ""
 
     @staticmethod
     def _write_config_and_run_command(
@@ -806,9 +810,9 @@ class BaseCommandsTest:
 
         assert patched_run.call_count == len(expected_calls)
         for expected_call in expected_calls:
-            expected_kwargs = {}
+            expected_kwargs = {"shell": True}
             if isinstance(expected_call, tuple):
-                expected_kwargs = expected_call[1]
+                expected_kwargs.update(expected_call[1])
                 expected_call = expected_call[0]
 
             assert f"[DEBUG] running: {expected_call}" in std_out
@@ -1007,14 +1011,14 @@ class TestLocallyBuiltContainerCommands(BaseCommandsTest):
         helpers = env_specific_data["test_helpers"]
 
         build_command = (
-            ["docker", "build", "."] + helpers["expected_build_options"],
+            list_to_str(["docker", "build", "."] + helpers["expected_build_options"]),
             {"stdout": subprocess.DEVNULL},
         )
-        run_command = (
+        run_command = list_to_str(
             ["docker", "run", "--quiet", "-e", "REGO_CONTAINER_NAME=test_docker_file"]
             + docker_run_options_str.split()
             + [helpers["expected_tag"]]
-            + self._generate_command_to_run(command, run_options)
+            + [self._generate_command_to_run(command, run_options)]
         )
 
         return [build_command, run_command]
@@ -1062,11 +1066,11 @@ class TestContainerFromImageCommands(BaseCommandsTest):
         docker_run_options_str = command.get("docker_run_options", "")
         container_config = env_specific_data["config_overrides"]["docker_containers"][0]
 
-        run_command = (
+        run_command = list_to_str(
             ["docker", "run", "--quiet", "-e", "REGO_CONTAINER_NAME=test_image_from_repo"]
             + docker_run_options_str.split()
             + [container_config["docker_image"]]
-            + self._generate_command_to_run(command, run_options)
+            + [self._generate_command_to_run(command, run_options)]
         )
 
         return [run_command]
@@ -1159,7 +1163,7 @@ class TestDockerComposeServiceCommands(BaseCommandsTest):
             "expected_docker_compose_file"
         ]
 
-        run_command = (
+        run_command = list_to_str(
             [
                 "docker",
                 "compose",
@@ -1170,13 +1174,18 @@ class TestDockerComposeServiceCommands(BaseCommandsTest):
             ]
             + docker_run_options_str.split()
             + [container_config["docker_compose_service"]]
-            + self._generate_command_to_run(command, run_options)
+            + [self._generate_command_to_run(command, run_options)]
         )
 
         clean_up_commands = [
-            (["docker", "compose", "down", "--remove-orphans"], {"stdout": subprocess.DEVNULL}),
             (
-                ["docker", "compose", "--file", expected_docker_compose_file, "rm", "-fsv"],
+                list_to_str(["docker", "compose", "down", "--remove-orphans"]),
+                {"stdout": subprocess.DEVNULL},
+            ),
+            (
+                list_to_str(
+                    ["docker", "compose", "--file", expected_docker_compose_file, "rm", "-fsv"]
+                ),
                 {"stdout": subprocess.DEVNULL},
             ),
         ]
@@ -1184,6 +1193,8 @@ class TestDockerComposeServiceCommands(BaseCommandsTest):
         return [run_command, *clean_up_commands]
 
 
+# TODO: probably this class could be removed,
+# I think it is some rudiment from early days.
 class TestContainers:
     config_content = {
         "commands": [
@@ -1233,17 +1244,17 @@ class TestContainers:
         yield config_path
 
     def _expected_call(self, image_name: str, container_name: str):
-        return [
-            "docker",
-            "run",
-            "--quiet",
-            "-e",
-            f"REGO_CONTAINER_NAME={container_name}",
-            image_name,
-            "/bin/sh",
-            "-c",
-            "echo OK",
-        ]
+        return list_to_str(
+            [
+                "docker",
+                "run",
+                "--quiet",
+                "-e",
+                f"REGO_CONTAINER_NAME={container_name}",
+                image_name,
+                "/bin/sh -c 'echo OK'",
+            ]
+        )
 
     def _what_to_run(self, container_options: List[str], config_file: pathlib.Path):
         return [
@@ -1282,7 +1293,7 @@ class TestContainers:
         assert patched_run.call_count == len(expected_calls)
         for expected_call in expected_calls:
             assert f"[DEBUG] running: {expected_call}" in out
-            patched_run.assert_has_calls(calls=[call(expected_call)])
+            patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
 
     @patch("rego.subprocess.run")
     def test_multiple_containers(
@@ -1315,7 +1326,7 @@ class TestContainers:
         assert patched_run.call_count == len(expected_calls)
         for expected_call in expected_calls:
             assert f"[DEBUG] running: {expected_call}" in out
-            patched_run.assert_has_calls(calls=[call(expected_call)])
+            patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
 
     @patch("rego.subprocess.run")
     def test_all_containers(
@@ -1343,4 +1354,4 @@ class TestContainers:
         assert patched_run.call_count == len(expected_calls)
         for expected_call in expected_calls:
             assert f"[DEBUG] running: {expected_call}" in out
-            patched_run.assert_has_calls(calls=[call(expected_call)])
+            patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
