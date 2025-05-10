@@ -7,6 +7,7 @@ It is not important for rego if your project is written
 in Python/Go/Rust/C++/Java or something else, rego can
 work with any project in the same way.
 
+Author: anton.chivkunov@gmail.com
 Official repo: https://github.com/frwl404/rego
 """
 
@@ -278,7 +279,7 @@ def _get_value_from_options(all_options: Dict[str, Any], target_names: Set[str])
     return None
 
 
-def set_user_if_not_set_yet(docker_run_options: list[str]) -> list[str]:
+def set_user_if_not_set_yet(docker_run_options: List[str]) -> List[str]:
     """
     By default, we want to run actual instructions inside container as
     those user, which runs rego command on host. It is desired behavior
@@ -320,7 +321,6 @@ class Image:
         return tag
 
     def run(self, docker_run_options: List[str], command_to_run: str):
-        docker_run_options = set_user_if_not_set_yet(docker_run_options)
         full_docker_command = (
             ["docker", "run", "--quiet", "-e", f"REGO_CONTAINER_NAME={self._cfg['name']}"]
             + docker_run_options
@@ -363,7 +363,6 @@ class Composition:
     def run(
         self, docker_run_options: List[str], command_to_run: str
     ) -> subprocess.CompletedProcess:
-        docker_run_options = set_user_if_not_set_yet(docker_run_options)
         docker_compose_run_cmd = (
             [self.compose_base]
             + self._generated_options
@@ -406,6 +405,7 @@ class Container:
     def run_command(
         self, docker_run_options: List[str], command_to_run: str
     ) -> subprocess.CompletedProcess:
+        docker_run_options = set_user_if_not_set_yet(docker_run_options)
         return self._docker_backend.run(docker_run_options, command_to_run)
 
 
@@ -584,7 +584,7 @@ def _get_container_config(target_container_name: str, cfg: dict) -> dict:
     return valid_containers[0]
 
 
-def _generate_bin_sh_cmd(commands: list[str]):
+def _generate_bin_sh_cmd(commands: List[str]):
     return f"/bin/sh -c '{' && '.join(commands)}'"
 
 
