@@ -291,6 +291,34 @@ def set_user_if_not_set_yet(docker_run_options: List[str]) -> List[str]:
     return docker_run_options
 
 
+def drop_interactive_if_not_tty(docker_run_options: List[str]) -> List[str]:
+    """
+    It is common thing to use "-it" flags when running docker containers
+    to debug something there (pytest with --pdb option). It should be very
+    common to have "test" commands to be configured with "-it", but it
+    may lead to problems on CI runners, as they don't have TTY, see
+    for example: https://github.com/actions/runner/issues/808
+    We want to let users have "-it" flags and auto-detect situations,
+    where command is run on setup without TTY, in this case we will drop
+    -i/--interactive flag for run options.
+    """
+    if sys.stdin.isatty():
+        return docker_run_options
+
+    for f in ("--interactive", "-i"):
+        if f in docker_run_options:
+            _str = " ".join(docker_run_options)
+            _logger.debug(f"the input device is not TTY, dropping '{f}' from '{_str}'")
+            docker_run_options.remove(f)
+
+    for idx, value in enumerate(docker_run_options):
+        if value.startswith("-") and not value.startswith("--") and "i" in value:
+            _logger.debug(f"the input device is not TTY, dropping 'i' from '{value}'")
+            docker_run_options[idx] = value.replace("i", "")
+
+    return docker_run_options
+
+
 class Image:
     def __init__(self, container_cfg: dict):
         self._cfg = container_cfg
@@ -406,6 +434,7 @@ class Container:
         self, docker_run_options: List[str], command_to_run: str
     ) -> subprocess.CompletedProcess:
         docker_run_options = set_user_if_not_set_yet(docker_run_options)
+        docker_run_options = drop_interactive_if_not_tty(docker_run_options)
         return self._docker_backend.run(docker_run_options, command_to_run)
 
 
