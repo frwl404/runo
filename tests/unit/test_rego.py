@@ -13,6 +13,11 @@ from rego import main  # noqa
 _OK_EXIT_CODE_REGEX = f"^{os.EX_OK}$"
 
 
+@pytest.fixture
+def config_path(tmp_path):
+    return tmp_path / "cfg.toml"
+
+
 def list_to_str(src: list, separator: str = " ") -> str:
     return separator.join(src)
 
@@ -25,6 +30,13 @@ def _config_file(content: str, config_path: pathlib.Path):
         yield config_path
     finally:
         os.remove(config_path)
+
+
+def _expected_docker_run_options(docker_run_options_str: str):
+    expected_docker_run_options = docker_run_options_str.split()
+    if not {"-u", "--user"} & set(expected_docker_run_options):
+        expected_docker_run_options.extend(["--user", "$(id -u):$(id -g)"])
+    return expected_docker_run_options
 
 
 class TestArguments:
@@ -109,8 +121,7 @@ class TestArguments:
         assert std_out == expected_output
 
     @pytest.mark.parametrize("config_flag", ["--config"])
-    def test_config_flag(self, capfd, monkeypatch, config_flag, tmp_path):
-        config_path = tmp_path / "cfg.toml"
+    def test_config_flag(self, capfd, monkeypatch, config_flag, config_path):
         monkeypatch.setattr(sys, "argv", ["rego", config_flag, str(config_path)])
 
         config_content = toml.dumps(
@@ -522,13 +533,12 @@ digits, '-', or '_', got '?not_allowed_also'"]
         self,
         capfd,
         monkeypatch,
-        tmp_path,
+        config_path,
         config_content,
         expected_rc,
         expected_err_out,
         expected_std_out,
     ):
-        config_path = tmp_path / "cfg.toml"
         monkeypatch.setattr(sys, "argv", ["rego", "--config", str(config_path)])
 
         with pytest.raises(SystemExit, match=f"^{expected_rc}$"), _config_file(
@@ -657,13 +667,12 @@ as well, but they are not found: {'docker_compose_service'}"]
         self,
         capfd,
         monkeypatch,
-        tmp_path,
+        config_path,
         config_content,
         expected_rc,
         expected_std_out,
         expected_std_err,
     ):
-        config_path = tmp_path / "cfg.toml"
         monkeypatch.setattr(sys, "argv", ["rego", "--config", str(config_path), "--containers"])
 
         with pytest.raises(SystemExit, match=f"^{expected_rc}$"), _config_file(
@@ -754,10 +763,9 @@ class BaseCommandsTest:
         name_of_command_to_run: str,
         config_overrides: dict,
         run_options: List[str],
-        tmp_path: pathlib.Path,
+        config_path: pathlib.Path,
         capfd: pytest.CaptureFixture,
     ):
-        config_path = tmp_path / "cfg.toml"
         config_content = {"commands": [command_config]}
         config_content.update(config_overrides)
 
@@ -784,7 +792,7 @@ class BaseCommandsTest:
         patched_run,
         capfd,
         monkeypatch,
-        tmp_path,
+        config_path,
         fxtc_command: dict,
         fxtc_env_specific_data: dict,
         fxtc_run_options: List[str],
@@ -802,7 +810,7 @@ class BaseCommandsTest:
             name_of_command_to_run=fxtc_command["name"],
             config_overrides=fxtc_env_specific_data.get("config_overrides", {}),
             run_options=fxtc_run_options,
-            tmp_path=tmp_path,
+            config_path=config_path,
             capfd=capfd,
         )
 
@@ -893,7 +901,7 @@ class TestNativeCommands(BaseCommandsTest):
         self,
         capfd,
         monkeypatch,
-        tmp_path,
+        config_path,
         command_config,
         expected_rc,
         expected_std_out,
@@ -906,7 +914,7 @@ class TestNativeCommands(BaseCommandsTest):
             name_of_command_to_run="native",
             config_overrides={},
             run_options=[],
-            tmp_path=tmp_path,
+            config_path=config_path,
             capfd=capfd,
         )
         for expected_line in expected_std_out:
@@ -1015,13 +1023,9 @@ class TestLocallyBuiltContainerCommands(BaseCommandsTest):
             {"stdout": subprocess.DEVNULL},
         )
 
-        expected_docker_run_options = docker_run_options_str.split()
-        if not {"-u", "--user"} & set(expected_docker_run_options):
-            expected_docker_run_options.extend(["--user", "$(id -u):$(id -g)"])
-
         run_command = list_to_str(
             ["docker", "run", "--quiet", "-e", "REGO_CONTAINER_NAME=test_docker_file"]
-            + expected_docker_run_options
+            + _expected_docker_run_options(docker_run_options_str)
             + [helpers["expected_tag"]]
             + [self._generate_command_to_run(command, run_options)]
         )
@@ -1071,13 +1075,9 @@ class TestContainerFromImageCommands(BaseCommandsTest):
         docker_run_options_str = command.get("docker_run_options", "")
         container_config = env_specific_data["config_overrides"]["docker_containers"][0]
 
-        expected_docker_run_options = docker_run_options_str.split()
-        if not {"-u", "--user"} & set(expected_docker_run_options):
-            expected_docker_run_options.extend(["--user", "$(id -u):$(id -g)"])
-
         run_command = list_to_str(
             ["docker", "run", "--quiet", "-e", "REGO_CONTAINER_NAME=test_image_from_repo"]
-            + expected_docker_run_options
+            + _expected_docker_run_options(docker_run_options_str)
             + [container_config["docker_image"]]
             + [self._generate_command_to_run(command, run_options)]
         )
@@ -1171,9 +1171,6 @@ class TestDockerComposeServiceCommands(BaseCommandsTest):
         expected_docker_compose_file = env_specific_data["test_helpers"][
             "expected_docker_compose_file"
         ]
-        expected_docker_run_options = docker_run_options_str.split()
-        if not {"-u", "--user"} & set(expected_docker_run_options):
-            expected_docker_run_options.extend(["--user", "$(id -u):$(id -g)"])
 
         run_command = list_to_str(
             [
@@ -1184,7 +1181,7 @@ class TestDockerComposeServiceCommands(BaseCommandsTest):
                 *expected_docker_compose_options,
                 "run",
             ]
-            + expected_docker_run_options
+            + _expected_docker_run_options(docker_run_options_str)
             + [container_config["docker_compose_service"]]
             + [self._generate_command_to_run(command, run_options)]
         )
@@ -1205,9 +1202,12 @@ class TestDockerComposeServiceCommands(BaseCommandsTest):
         return [run_command, *clean_up_commands]
 
 
-# TODO: probably this class could be removed,
-# I think it is some rudiment from early days.
-class TestContainers:
+class TestContainersSelection:
+    """
+    We have "-c"/"--container" option to select exact container to run.
+    User should be able to select one/several/all containers with this option.
+    """
+
     config_content = {
         "commands": [
             {
@@ -1248,13 +1248,6 @@ class TestContainers:
     def fxtc_container_to_test(self, request):
         yield self.config_content["docker_containers"][request.param]
 
-    @pytest.fixture(scope="class")
-    def fxtc_config_file(self, tmp_path_factory):
-        config_path = tmp_path_factory.mktemp("test") / "cfg.toml"
-        with open(config_path, "w") as toml_file:
-            toml_file.write(toml.dumps(self.config_content))
-        yield config_path
-
     def _expected_call(self, image_name: str, container_name: str):
         return list_to_str(
             [
@@ -1270,7 +1263,8 @@ class TestContainers:
             ]
         )
 
-    def _what_to_run(self, container_options: List[str], config_file: pathlib.Path):
+    @staticmethod
+    def _what_to_run(container_options: List[str], config_file: pathlib.Path):
         return [
             "rego",
             "-d",
@@ -1284,9 +1278,9 @@ class TestContainers:
     def test_single_container(
         self,
         patched_run,
+        config_path,
         capfd,
         monkeypatch,
-        fxtc_config_file,
         fxtc_container_option,
         fxtc_container_to_test,
     ):
@@ -1295,11 +1289,13 @@ class TestContainers:
         container_name = fxtc_container_to_test["name"]
         image_name = fxtc_container_to_test["docker_image"]
 
-        what_to_run = self._what_to_run([fxtc_container_option, container_name], fxtc_config_file)
+        what_to_run = self._what_to_run([fxtc_container_option, container_name], config_path)
         monkeypatch.setattr(sys, "argv", what_to_run)
         expected_calls = [self._expected_call(image_name, container_name)]
 
-        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
+        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
+            toml.dumps(self.config_content), config_path
+        ):
             main()
 
         out, err = capfd.readouterr()
@@ -1313,9 +1309,9 @@ class TestContainers:
     def test_multiple_containers(
         self,
         patched_run,
+        config_path,
         capfd,
         monkeypatch,
-        fxtc_config_file,
         fxtc_container_option,
     ):
         patched_run.return_value.returncode = 0
@@ -1324,7 +1320,7 @@ class TestContainers:
 
         what_to_run = self._what_to_run(
             [fxtc_container_option, container1["name"], fxtc_container_option, container2["name"]],
-            fxtc_config_file,
+            config_path,
         )
         monkeypatch.setattr(sys, "argv", what_to_run)
         expected_calls = [
@@ -1332,7 +1328,9 @@ class TestContainers:
             for c in self.config_content["docker_containers"]
         ]
 
-        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
+        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
+            toml.dumps(self.config_content), config_path
+        ):
             main()
 
         out, err = capfd.readouterr()
@@ -1346,21 +1344,23 @@ class TestContainers:
     def test_all_containers(
         self,
         patched_run,
+        config_path,
         capfd,
         monkeypatch,
-        fxtc_config_file,
         fxtc_container_option,
     ):
         patched_run.return_value.returncode = 0
 
-        what_to_run = self._what_to_run([fxtc_container_option, "*"], fxtc_config_file)
+        what_to_run = self._what_to_run([fxtc_container_option, "*"], config_path)
         monkeypatch.setattr(sys, "argv", what_to_run)
         expected_calls = [
             self._expected_call(image_name=c["docker_image"], container_name=c["name"])
             for c in self.config_content["docker_containers"]
         ]
 
-        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
+        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
+            toml.dumps(self.config_content), config_path
+        ):
             main()
 
         out, err = capfd.readouterr()
