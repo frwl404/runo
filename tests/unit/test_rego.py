@@ -1369,3 +1369,114 @@ class TestContainersSelection:
         for expected_call in expected_calls:
             assert f"[DEBUG] running: {expected_call}" in out
             patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
+
+
+class TestDropInteractiveMode:
+    """
+    When input is not TTY (for example in case of github actions runner),
+    rego drops -i/--interactive options, if they are present, because they
+    will lead to failure on such setup(s).
+    """
+
+    @pytest.fixture(
+        params=[
+            {
+                "name": "docker_container",
+                "docker_image": "container1image",
+            },
+            {
+                "name": "docker_compose_container",
+                "docker_compose_file_path": "docker-compose.yml",
+                "docker_compose_service": "client",
+            },
+        ]
+    )
+    def containers_to_test(self, request):
+        return request.param
+
+    @pytest.fixture(
+        params=[
+            {
+                "initial_options": "-it",
+                "final_options": "-t",
+                "expected_trace": "the input device is not TTY, dropping 'i' from '-it'",
+            },
+            {
+                "initial_options": "-i",
+                "final_options": "",
+                "expected_trace": "the input device is not TTY, dropping '-i' from "
+                "'-i --user $(id -u):$(id -g)'",
+            },
+            {
+                "initial_options": "-i -t",
+                "final_options": "-t",
+                "expected_trace": "the input device is not TTY, dropping '-i' from "
+                "'-i -t --user $(id -u):$(id -g)'",
+            },
+            {
+                "initial_options": "--interactive",
+                "final_options": "",
+                "expected_trace": "the input device is not TTY, dropping '--interactive' "
+                "from '--interactive --user $(id -u):$(id -g)'",
+            },
+            {
+                "initial_options": "--interactive --something-else",
+                "final_options": "--something-else",
+                "expected_trace": "the input device is not TTY, dropping '--interactive' "
+                "from '--interactive --something-else --user $(id -u):$(id -g)'",
+            },
+        ]
+    )
+    def options_to_test(self, request):
+        return request.param
+
+    @pytest.fixture
+    def no_tty(self, mocker):
+        tty_mock = mocker.patch("sys.stdin.isatty")
+        tty_mock.return_value = False
+
+    @patch("rego.subprocess.run")
+    def test_no_tty(
+        self,
+        patched_run,
+        config_path,
+        capfd,
+        monkeypatch,
+        no_tty,
+        containers_to_test,
+        options_to_test,
+    ):
+        initial_options = options_to_test["initial_options"]
+        config_content = {
+            "commands": [
+                {
+                    "name": "test_cmd",
+                    "description": "-",
+                    "execute": "echo OK",
+                    "docker_container": containers_to_test["name"],
+                    "docker_run_options": initial_options,
+                },
+            ],
+            "docker_containers": [containers_to_test],
+        }
+
+        patched_run.return_value.returncode = 0
+        monkeypatch.setattr(sys, "argv", ["rego", "-d", "--config", str(config_path), "test_cmd"])
+
+        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
+            toml.dumps(config_content), config_path
+        ):
+            main()
+
+        out, err = capfd.readouterr()
+        assert err == ""
+        assert options_to_test["expected_trace"] in out
+
+        found = False
+        for _call in patched_run.mock_calls:
+            _call_str = str(_call)
+            assert initial_options not in _call_str
+            if options_to_test["final_options"] in _call_str:
+                found = True
+
+        assert found
