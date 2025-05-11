@@ -1,14 +1,12 @@
 services:
   client:
     build: dev/
-    stdin_open: true # docker run -i
-    tty: true        # docker run -t
     volumes:
       - ./:/app
     working_dir: /app
     depends_on:
       server:
-        condition: service_started
+        condition: service_healthy
     stop_grace_period: 0.1s
   server:
     image: "python:3.9-alpine"
@@ -16,3 +14,7 @@ services:
     ports:
       - "8000:8000"
     stop_grace_period: 0.1s
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 8000"]
+      interval: 1s
+      retries: 5

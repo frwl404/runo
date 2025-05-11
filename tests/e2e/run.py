@@ -29,7 +29,7 @@ def _test_command(command: dict):
 
         errors = []
         if output != expected_output:
-            errors.append(f"{expected_output} != {output}")
+            errors.append(f"'{expected_output}' != '{output}'")
         if res.returncode != expected_returncode:
             errors.append(f"Expected returncode: {expected_returncode}, got {res.returncode}")
 
