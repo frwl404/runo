@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  tests:
+  static-checks:
 
     runs-on: ubuntu-latest
 
@@ -25,6 +25,23 @@ jobs:
       # Formatter
       - name: ruff (formatter)
         run: ./rego ruff format rego tests --check
-      # Finally tests
+
+  unit-tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      # unit tests
       - name: unit tests
-        run: ./rego test
+        run: ./rego -c "*" test
+
+  end-to-end-tests:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      # e2d tests
+      - name: e2e tests
+        run: ./rego e2e

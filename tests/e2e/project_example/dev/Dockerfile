@@ -1,3 +1,3 @@
-FROM python:3.9-alpine
+FROM python:3.9-alpine3.20
 
-RUN apk update && apk add curl && apk add nano
+RUN apk update && apk add curl
