@@ -1594,4 +1594,6 @@ class TestForwardUser(BaseContainersTest):
         assert should_not_be_in_final_options not in out
 
         assert any([final_options in str(_call) for _call in patched_run.mock_calls])
-        assert all([should_not_be_in_final_options not in str(_call) for _call in patched_run.mock_calls])
+        assert all(
+            [should_not_be_in_final_options not in str(_call) for _call in patched_run.mock_calls]
+        )

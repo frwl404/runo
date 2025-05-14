@@ -183,10 +183,7 @@ class Logger:
             if isinstance(message, list):
                 message = "\n".join(message)
 
-            try:
-                file.write(f"{message}\n")
-            except (AttributeError, OSError):
-                pass
+            file.write(f"{message}\n")
 
     def info(self, message: Union[str, List[str]]):
         self._print_message(message)
