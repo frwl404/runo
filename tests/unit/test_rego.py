@@ -1371,18 +1371,17 @@ class TestContainersSelection:
             patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
 
 
-class TestDropInteractiveMode:
-    """
-    When input is not TTY (for example in case of github actions runner),
-    rego drops -i/--interactive options, if they are present, because they
-    will lead to failure on such setup(s).
-    """
-
+class BaseContainersTest:
+    @staticmethod
     @pytest.fixture(
         params=[
             {
                 "name": "docker_container",
                 "docker_image": "container1image",
+            },
+            {
+                "name": "docker_local",
+                "docker_file_path": "Dockerfile",
             },
             {
                 "name": "docker_compose_container",
@@ -1391,8 +1390,35 @@ class TestDropInteractiveMode:
             },
         ]
     )
-    def containers_to_test(self, request):
+    def containers_to_test(request):
+        """
+        This parametrized fixture is used for testing features, which are
+        common for every type of container
+        """
         return request.param
+
+    @staticmethod
+    def generate_config_content(containers_to_test: dict, docker_run_options: str):
+        return {
+            "commands": [
+                {
+                    "name": "test_cmd",
+                    "description": "-",
+                    "execute": "echo OK",
+                    "docker_container": containers_to_test["name"],
+                    "docker_run_options": docker_run_options,
+                },
+            ],
+            "docker_containers": [containers_to_test],
+        }
+
+
+class TestDropInteractiveMode(BaseContainersTest):
+    """
+    When input is not TTY (for example in case of github actions runner),
+    rego drops -i/--interactive options, if they are present, because they
+    will lead to failure on such setup(s).
+    """
 
     @pytest.fixture(
         params=[
@@ -1447,18 +1473,8 @@ class TestDropInteractiveMode:
         options_to_test,
     ):
         initial_options = options_to_test["initial_options"]
-        config_content = {
-            "commands": [
-                {
-                    "name": "test_cmd",
-                    "description": "-",
-                    "execute": "echo OK",
-                    "docker_container": containers_to_test["name"],
-                    "docker_run_options": initial_options,
-                },
-            ],
-            "docker_containers": [containers_to_test],
-        }
+        final_options = options_to_test["final_options"]
+        config_content = self.generate_config_content(containers_to_test, initial_options)
 
         patched_run.return_value.returncode = 0
         monkeypatch.setattr(sys, "argv", ["rego", "-d", "--config", str(config_path), "test_cmd"])
@@ -1472,11 +1488,110 @@ class TestDropInteractiveMode:
         assert err == ""
         assert options_to_test["expected_trace"] in out
 
-        found = False
-        for _call in patched_run.mock_calls:
-            _call_str = str(_call)
-            assert initial_options not in _call_str
-            if options_to_test["final_options"] in _call_str:
-                found = True
+        assert any([final_options in str(_call) for _call in patched_run.mock_calls])
+        assert all([initial_options not in str(_call) for _call in patched_run.mock_calls])
 
-        assert found
+
+class TestForwardUser(BaseContainersTest):
+    """
+    By default, rego runs docker as the same user, which ran rego command,
+    i.e. it adds "-u $(id -u):$(id -g)" to docker run options, if "-u" was
+    not set by user directly, via config.
+    """
+
+    @pytest.fixture(
+        params=[
+            {
+                "initial_options": "",
+                "final_options": "--user $(id -u):$(id -g)",
+            },
+            {
+                "initial_options": "-t",
+                "final_options": "-t --user $(id -u):$(id -g)",
+            },
+        ]
+    )
+    def options_user_not_set(self, request):
+        return request.param
+
+    @patch("rego.subprocess.run")
+    def test_user_not_set_yet(
+        self,
+        patched_run,
+        config_path,
+        capfd,
+        monkeypatch,
+        containers_to_test,
+        options_user_not_set,
+    ):
+        initial_options = options_user_not_set["initial_options"]
+        final_options = options_user_not_set["final_options"]
+
+        config_content = self.generate_config_content(containers_to_test, initial_options)
+
+        patched_run.return_value.returncode = 0
+        monkeypatch.setattr(sys, "argv", ["rego", "-d", "--config", str(config_path), "test_cmd"])
+
+        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
+            toml.dumps(config_content), config_path
+        ):
+            main()
+
+        out, err = capfd.readouterr()
+        assert err == ""
+        assert final_options in out
+        assert any([final_options in str(_call) for _call in patched_run.mock_calls])
+
+    @pytest.fixture(
+        params=[
+            {
+                "initial_options": "-u 1000:1000",
+                "final_options": "-u 1000:1000",
+                "should_not_be_in_final_options": "--user $(id -u):$(id -g)",
+            },
+            {
+                "initial_options": "--user 1000:1000",
+                "final_options": "--user 1000:1000",
+                "should_not_be_in_final_options": "--user $(id -u):$(id -g)",
+            },
+            {
+                "initial_options": "--user $(id -u):$(id -g)",
+                "final_options": "--user $(id -u):$(id -g)",
+                "should_not_be_in_final_options": "-u 1000:1000",
+            },
+        ]
+    )
+    def options_user_set(self, request):
+        return request.param
+
+    @patch("rego.subprocess.run")
+    def test_user_already_set(
+        self,
+        patched_run,
+        config_path,
+        capfd,
+        monkeypatch,
+        containers_to_test,
+        options_user_set,
+    ):
+        initial_options = options_user_set["initial_options"]
+        final_options = options_user_set["final_options"]
+        should_not_be_in_final_options = options_user_set["should_not_be_in_final_options"]
+
+        config_content = self.generate_config_content(containers_to_test, initial_options)
+
+        patched_run.return_value.returncode = 0
+        monkeypatch.setattr(sys, "argv", ["rego", "-d", "--config", str(config_path), "test_cmd"])
+
+        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
+            toml.dumps(config_content), config_path
+        ):
+            main()
+
+        out, err = capfd.readouterr()
+        assert err == ""
+        assert final_options in out
+        assert should_not_be_in_final_options not in out
+
+        assert any([final_options in str(_call) for _call in patched_run.mock_calls])
+        assert all([should_not_be_in_final_options not in str(_call) for _call in patched_run.mock_calls])
