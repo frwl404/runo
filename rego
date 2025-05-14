@@ -209,36 +209,6 @@ def _subprocess_run(cmd: str, **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(cmd, shell=True, **kwargs)
 
 
-# We do want to support Python3.6 because of this we can't use a lot of good things
-# class CommandConfig(TypedDict):
-#     name: str
-#     description: str
-#     execute: str
-#     before: List[str]  # annotate as NotRequired Python3.11
-#     after: List[str]  # annotate as NotRequired Python3.11
-#     examples: List[str]  # annotate as NotRequired Python3.11
-#     docker_container: str  # annotate as NotRequired Python3.11
-#     docker_run_options: str  # annotate as NotRequired Python3.11
-#
-#
-# class DockerContainerConfig(TypedDict):
-#     name: str
-#     # Docker alternatives: image from repo
-#     docker_image: str  # annotate as NotRequired Python3.11
-#     # Docker alternatives: local build
-#     docker_file_path: str  # annotate as NotRequired Python3.11
-#     docker_build_options: str  # annotate as NotRequired Python3.11
-#     # Docker-compose alternative
-#     docker_compose_file_path: str  # annotate as NotRequired Python3.11
-#     docker_compose_options: str  # annotate as NotRequired Python3.11
-#     docker_compose_service: str  # annotate as NotRequired Python3.11
-#
-#
-# class Config(TypedDict):
-#     commands: List[CommandConfig]
-#     docker_containers: List[DockerContainerConfig]  # annotate as NotRequired Python3.11
-
-
 def _option_to_value(options: List[str]) -> Dict[str, Any]:
     """
     Very simplified version of parser for command (docker) options.
