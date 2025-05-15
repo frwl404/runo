@@ -24,6 +24,6 @@ addopts = [
     "-rw",
     "-re",
     "--cov-report=html",
-    "--cov-fail-under=90",
+    "--cov-fail-under=97",
     "--capture=tee-sys",  # Workaround for https://github.com/pytest-dev/pytest/issues/5997
 ]
