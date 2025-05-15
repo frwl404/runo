@@ -722,12 +722,7 @@ class Validator:
 
             if not isinstance(value, self._schema[field]["value_type"]):
                 expected_type = self._schema[field]["value_type"]
-
-                err_details = "IF YOU SEE IT PLEASE REPORT BUG"
-                if isinstance(expected_type, type):
-                    err_details = expected_type.__name__
-                elif isinstance(expected_type, tuple):
-                    err_details = " | ".join([t.__name__ for t in expected_type])
+                err_details = expected_type.__name__
 
                 errors[field] = [f"should be of type {err_details}, got {type(value).__name__}"]
                 continue
