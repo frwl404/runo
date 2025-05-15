@@ -3,7 +3,7 @@ import pathlib
 import subprocess
 import sys
 from contextlib import contextmanager
-from typing import List
+from typing import List, Optional
 from unittest.mock import call, patch
 
 import pytest
@@ -1259,14 +1259,19 @@ class TestContainersSelection:
         )
 
     @staticmethod
-    def _what_to_run(container_options: List[str], config_file: pathlib.Path):
+    def _what_to_run(
+        config_file: pathlib.Path,
+        container_options: Optional[List[str]] = None,
+        command_name: str = "command_without_container",
+    ):
+        container_options = container_options or []
         return [
             "rego",
             "-d",
             *container_options,
             "--config",
             str(config_file),
-            "command_without_container",
+            command_name,
         ]
 
     @patch("rego.subprocess.run")
@@ -1284,7 +1289,9 @@ class TestContainersSelection:
         container_name = fxtc_container_to_test["name"]
         image_name = fxtc_container_to_test["docker_image"]
 
-        what_to_run = self._what_to_run([fxtc_container_option, container_name], config_path)
+        what_to_run = self._what_to_run(
+            config_path, container_options=[fxtc_container_option, container_name]
+        )
         monkeypatch.setattr(sys, "argv", what_to_run)
         expected_calls = [self._expected_call(image_name, container_name)]
 
@@ -1314,8 +1321,13 @@ class TestContainersSelection:
         container1, container2 = self.config_content["docker_containers"]
 
         what_to_run = self._what_to_run(
-            [fxtc_container_option, container1["name"], fxtc_container_option, container2["name"]],
             config_path,
+            container_options=[
+                fxtc_container_option,
+                container1["name"],
+                fxtc_container_option,
+                container2["name"],
+            ],
         )
         monkeypatch.setattr(sys, "argv", what_to_run)
         expected_calls = [
@@ -1346,7 +1358,7 @@ class TestContainersSelection:
     ):
         patched_run.return_value.returncode = 0
 
-        what_to_run = self._what_to_run([fxtc_container_option, "*"], config_path)
+        what_to_run = self._what_to_run(config_path, container_options=[fxtc_container_option, "*"])
         monkeypatch.setattr(sys, "argv", what_to_run)
         expected_calls = [
             self._expected_call(image_name=c["docker_image"], container_name=c["name"])
@@ -1364,6 +1376,65 @@ class TestContainersSelection:
         for expected_call in expected_calls:
             assert f"[DEBUG] running: {expected_call}" in out
             patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
+
+    def test_no_any_containers_available(self, config_path, monkeypatch, capfd):
+        config_content = {
+            "commands": [
+                {
+                    "name": "test_cmd",
+                    "description": "-",
+                    "execute": "echo OK",
+                    "docker_container": "no_such_container",
+                },
+            ],
+        }
+
+        monkeypatch.setattr(sys, "argv", self._what_to_run(config_path, command_name="test_cmd"))
+        with pytest.raises(SystemExit, match=f"^{os.EX_CONFIG}$"), _config_file(
+            toml.dumps(config_content), config_path
+        ):
+            main()
+
+        out, err = capfd.readouterr()
+        assert err == "\n".join(
+            [
+                "Container 'no_such_container' is not found in the config.",
+                "Please use '--containers' option to list all containers, present in the config\n",
+            ]
+        )
+
+    def test_container_configuration_is_wrong(self, config_path, monkeypatch, capfd):
+        config_content = {
+            "commands": [
+                {
+                    "name": "test_cmd",
+                    "description": "-",
+                    "execute": "echo OK",
+                    "docker_container": "bad_container",
+                },
+            ],
+            "docker_containers": [
+                {
+                    "name": "bad_container",
+                    "docker_image": 3,
+                },
+            ],
+        }
+
+        monkeypatch.setattr(sys, "argv", self._what_to_run(config_path, command_name="test_cmd"))
+        with pytest.raises(SystemExit, match=f"^{os.EX_CONFIG}$"), _config_file(
+            toml.dumps(config_content), config_path
+        ):
+            main()
+
+        out, err = capfd.readouterr()
+        assert err == "\n".join(
+            [
+                "Container 'bad_container' is invalid:",
+                "  - docker_containers.0.docker_image: ['should be of type str, got int']",
+                "Please use '--containers' option to list all containers, present in the config\n",
+            ]
+        )
 
 
 class BaseContainersTest:
