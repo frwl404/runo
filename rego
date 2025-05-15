@@ -658,7 +658,13 @@ def _run_command(
         return 0
 
     nok_containers = {name: rc for name, rc in results.items() if rc != 0}
-    _logger.error(f"command has returned not 0 for following containers: {nok_containers}")
+    _logger.error(
+        [
+            f"command '{command_name}' has failed in "
+            f"{len(nok_containers)}/{len(containers_to_use)} containers:",
+        ]
+        + [f"  - {name} has returned {rc}" for name, rc in nok_containers.items()]
+    )
     return -1
 
 

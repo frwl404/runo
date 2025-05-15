@@ -1436,6 +1436,43 @@ class TestContainersSelection:
             ]
         )
 
+    @patch("rego.subprocess.run")
+    def test_part_of_containers_fail(
+        self,
+        patched_run,
+        config_path,
+        capfd,
+        monkeypatch,
+    ):
+        patched_run.side_effect = [
+            subprocess.CompletedProcess(args=["cmd1"], returncode=0),
+            subprocess.CompletedProcess(args=["cmd2"], returncode=13),
+        ]
+
+        what_to_run = self._what_to_run(config_path, container_options=["-c", "*"])
+        monkeypatch.setattr(sys, "argv", what_to_run)
+        expected_calls = [
+            self._expected_call(image_name=c["docker_image"], container_name=c["name"])
+            for c in self.config_content["docker_containers"]
+        ]
+
+        with pytest.raises(SystemExit, match="^-1$"), _config_file(
+            toml.dumps(self.config_content), config_path
+        ):
+            main()
+
+        out, err = capfd.readouterr()
+        assert err == "\n".join(
+            [
+                "command 'command_without_container' has failed in 1/2 containers:",
+                "  - container2 has returned 13\n",
+            ]
+        )
+        assert patched_run.call_count == len(expected_calls)
+        for expected_call in expected_calls:
+            assert f"[DEBUG] running: {expected_call}" in out
+            patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
+
 
 class BaseContainersTest:
     @staticmethod
