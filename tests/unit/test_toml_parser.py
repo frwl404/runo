@@ -51,9 +51,22 @@ def _config_file(content: str, config_path: pathlib.Path):
         },
     ],
 )
-def test_ok(tmp_path, content):
+def test_ok(config_path, content):
     with _config_file(
         toml.dumps(content),
-        config_path=tmp_path / "cfg.toml",
+        config_path=config_path,
     ) as f:
         assert TomlParser().load(f) == content
+
+
+def test_skipping_lines(config_path):
+    content = """
+# Comments are skipped
+
+# Empty lines are also skipped
+[main]
+what_is_it # Such lines are also skipped because no equal sign here
+param = 1
+"""
+    with _config_file(content, config_path=config_path) as f:
+        assert TomlParser().load(f) == {"main": {"param": 1}}

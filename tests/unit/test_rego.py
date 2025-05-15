@@ -13,11 +13,6 @@ from rego import main  # noqa
 _OK_EXIT_CODE_REGEX = f"^{os.EX_OK}$"
 
 
-@pytest.fixture
-def config_path(tmp_path):
-    return tmp_path / "cfg.toml"
-
-
 def list_to_str(src: list, separator: str = " ") -> str:
     return separator.join(src)
 
