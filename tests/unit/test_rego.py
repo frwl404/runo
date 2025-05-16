@@ -1027,6 +1027,50 @@ class TestLocallyBuiltContainerCommands(BaseCommandsTest):
 
         return [build_command, run_command]
 
+    @patch("rego.subprocess.run")
+    def test_build_failed(
+        self,
+        patched_run,
+        config_path,
+        capfd,
+        monkeypatch,
+    ):
+        """
+        When rego runs command in container, defined by local Dockerfile,
+        it should first (re)build the container. If build fails, we should
+        not proceed further.
+        """
+        patched_run.return_value.returncode = 13
+
+        monkeypatch.setattr(sys, "argv", ["rego", "--config", str(config_path), "test_cmd"])
+        config_content = {
+            "commands": [
+                {
+                    "name": "test_cmd",
+                    "description": "-",
+                    "docker_container": "test_docker_file",
+                    "execute": "echo OK",
+                }
+            ],
+            "docker_containers": [
+                {
+                    "name": "test_docker_file",
+                    "docker_file_path": "Dockerfile_test",
+                }
+            ],
+        }
+
+        with pytest.raises(SystemExit, match="^13$"), _config_file(
+            toml.dumps(config_content), config_path
+        ):
+            main()
+
+        out, err = capfd.readouterr()
+        assert (
+            err == "error at attempt to build docker image. "
+            "Can't proceed further. Please check the output\n"
+        )
+
 
 class TestContainerFromImageCommands(BaseCommandsTest):
     BASE_COMMAND_CFG: dict = {
