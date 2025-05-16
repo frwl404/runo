@@ -312,7 +312,14 @@ class Image:
             generated_options.extend(["--tag", tag])
 
         run = ["docker", "build"] + generated_options + options_from_config
-        _subprocess_run(" ".join(run), stdout=subprocess.DEVNULL)
+        res = _subprocess_run(" ".join(run), stdout=subprocess.DEVNULL)
+        if res.returncode != 0:
+            _logger.error(
+                "error at attempt to build docker image. "
+                "Can't proceed further. Please check the output"
+            )
+            sys.exit(res.returncode)
+
         return tag
 
     def run(self, docker_run_options: List[str], command_to_run: str):
