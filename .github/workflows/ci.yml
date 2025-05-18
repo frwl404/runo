@@ -25,6 +25,19 @@ jobs:
       # Formatter
       - name: ruff (formatter)
         run: ./rego ruff format rego tests --check
+#      # Check that version was set correctly
+#      - name: version checker
+#        run: |
+#          expected="rego version: $(git describe --tags)"
+#          actual="$(./rego -v)"
+#
+#          if [ "$actual" = "$expected" ]; then
+#            echo "OK"
+#          else
+#            echo "Version doesn't match expected ($expected)."
+#            echo "Make sure you run './rego pre-commit'"
+#            exit 1
+#          fi
 
   unit-tests:
 

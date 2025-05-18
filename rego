@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+
 """
 rego is a single-file tool, which is aimed to simplify/unify/speedup
 development workflow for any repository/project.
@@ -28,6 +29,8 @@ from typing import (
     Tuple,
     Union,
 )
+
+__version__ = "0.0.0"
 
 # We use .toml format of config files, but parsers for this format
 # might be not available in old python versions (only in 3.11 tomllib
@@ -950,6 +953,12 @@ def _show_configured_containers_and_exit(cfg: dict):
     sys.exit(os.EX_OK)
 
 
+def _show_version_and_exit():
+    _logger.info(f"rego version: {__version__}")
+
+    sys.exit(os.EX_OK)
+
+
 def _parse_arguments() -> argparse.Namespace:
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument(
@@ -980,6 +989,12 @@ def _parse_arguments() -> argparse.Namespace:
     )
     parser.add_argument("-h", "--help", action="help")
     parser.add_argument(
+        "-v",
+        "--version",
+        action="store_true",
+        help="show actual version of rego",
+    )
+    parser.add_argument(
         "command",
         nargs=argparse.REMAINDER,
         help=f"exact command to be executed (might be supplemented with options). "
@@ -997,6 +1012,9 @@ def main():
         if args.debug:
             _logger.enable_debug()
             _logger.debug("debug logging enabled")
+
+        if args.version:
+            _show_version_and_exit()
 
         config_path = _determine_config_path(args.config, for_write=True if args.init else False)
         if args.init:
