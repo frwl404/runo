@@ -5,7 +5,7 @@ cd "$(dirname "$0")/../containers/$(printenv REGO_CONTAINER_NAME)/"
 if command -v uv 2>&1 >/dev/null
 then
     echo "updating deps with UV"
-    uv lock --upgrade
+    uv lock --upgrade --no-cache
     exit 0
 fi
 

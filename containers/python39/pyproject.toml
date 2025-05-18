@@ -5,7 +5,7 @@ description = "Tool for managing repository"
 readme = "README.md"
 requires-python = ">=3.9"
 dependencies = [
-    "pip>=25.0.1",  # tomllib is not included in Python3.9, but it is available in pip
+    "pip>=25.0.1",  # In this container we want to test import "pip._vendor.tomli as tomllib"
 ]
 
 [dependency-groups]
