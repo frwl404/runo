@@ -9,4 +9,5 @@ WORKDIR /tmp/rego_venv
 COPY containers/python39/pyproject.toml .
 COPY containers/python39/uv.lock .
 
+RUN apk add git
 RUN uv sync

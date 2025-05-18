@@ -1,5 +1,6 @@
 import os
 import pathlib
+import re
 import subprocess
 import sys
 from contextlib import contextmanager
@@ -46,6 +47,7 @@ class TestArguments:
         assert std_err == ""
         expected_strings = [
             "usage: rego [-c CONTAINER] [-d] [--config CONFIG] [--containers] [--init] [-h]",
+            "            [-v]",
             "            ...",
             "",
             "positional arguments:",
@@ -62,12 +64,24 @@ class TestArguments:
             "  --init                create and initialize config file",
             "  --containers          show all containers, present in the config file",
             "  -h, --help",
+            "  -v, --version         show actual version of rego",
             "",
         ]
 
         assert len(std_out.split("\n")) == len(expected_strings)
         for expected_string in expected_strings:
             assert expected_string in std_out
+
+    @pytest.mark.parametrize("version_flag", ["-v", "--version"])
+    def test_version(self, capfd, monkeypatch, version_flag):
+        monkeypatch.setattr(sys, "argv", ["rego", version_flag])
+
+        with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
+            main()
+
+        std_out, std_err = capfd.readouterr()
+        assert std_err == ""
+        assert re.fullmatch(r"rego version: \d+\.\d+\.\d+\n", std_out)
 
     @pytest.mark.parametrize(
         "config_content, expected_output",
@@ -179,6 +193,7 @@ Please initialize it with './rego.py --init'
         assert (
             std_err
             == """usage: rego [-c CONTAINER] [-d] [--config CONFIG] [--containers] [--init] [-h]
+            [-v]
             ...
 rego: error: unrecognized arguments: --wrong-option
 """
