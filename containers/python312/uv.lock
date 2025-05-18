@@ -171,13 +171,13 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "mypy", specifier = ">=1.15.0" },
-    { name = "pytest", specifier = ">=8.3.4" },
-    { name = "pytest-cov", specifier = ">=6.0.0" },
-    { name = "pytest-mock", specifier = ">=3.14.0" },
-    { name = "ruff", specifier = ">=0.9.7" },
-    { name = "toml", specifier = ">=0.10.2" },
-    { name = "types-toml", specifier = ">=0.10.8.20240310" },
+    { name = "mypy" },
+    { name = "pytest" },
+    { name = "pytest-cov" },
+    { name = "pytest-mock" },
+    { name = "ruff" },
+    { name = "toml" },
+    { name = "types-toml" },
 ]
 
 [[package]]
