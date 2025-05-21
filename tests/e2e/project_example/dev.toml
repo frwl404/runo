@@ -23,7 +23,7 @@ name = "example_native_script"
 description = "example of command, executing shell script natively on your OS. Provide any string as arg and it will be printed to console"
 examples = ["example_native_script say_hello"]
 before = ["echo OK"]
-execute = "dev/say.sh"
+execute = "project/say.sh"
 # e2e_tests = ["example_native_script hello|OK\nyou asked to print 'hello'\n|0"]
 
 [[commands]]
@@ -50,7 +50,7 @@ docker_container = "container_defined_by_docker_file"
 docker_run_options = "-it -v .:/app -w /app --user 1000:1000"
 examples = ["example_docker_file_script say_hello"]
 before = ["echo Your OS:", "grep 'PRETTY_NAME' /etc/os-release"]
-execute = "dev/say.sh"
+execute = "project/say.sh"
 # e2e_tests = ["example_docker_file_script hello_from_docker|Your OS:\r\nPRETTY_NAME=\"Alpine Linux v3.20\"\r\nyou asked to print 'hello_from_docker'\r\n|0"]
 
 [[commands]]
@@ -66,12 +66,12 @@ name = "example_docker_compose_test_client"
 description = "example of command, which depends on docker compose service"
 docker_container = "container_defined_by_docker_compose"
 docker_run_options = "--build -i"
-execute = "./dev/client.py"
+execute = "./project/client.py"
 # e2e_tests = ["example_docker_compose_test_client|All tests passed\n|0"]
 
 [[docker_containers]]
 name = "container_defined_by_docker_file"
-docker_file_path = "dev/Dockerfile"
+docker_file_path = "project/Dockerfile"
 docker_build_options = "--tag img-defined-by-docker-file"
 
 [[docker_containers]]

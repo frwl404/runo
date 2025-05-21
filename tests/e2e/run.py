@@ -24,7 +24,7 @@ def _test_command(command: dict):
     for test in tests:
         execute, expected_output, expected_returncode = test.split("|")
         expected_returncode = int(expected_returncode)
-        res = subprocess.run(["./rego", *execute.split()], stdout=subprocess.PIPE)
+        res = subprocess.run(["./dev", *execute.split()], stdout=subprocess.PIPE)
         output = res.stdout.decode("utf-8")
 
         errors = []
@@ -45,7 +45,7 @@ def _test_command(command: dict):
 
 def main():
     os.chdir("tests/e2e/project_example")
-    config_under_the_test = "./rego.toml"
+    config_under_the_test = "./dev.toml"
     with open(config_under_the_test, "r") as f:
         data = f.read()
         uncomment_e2e_lines = data.replace("# e2e_tests =", "e2e_tests =")
