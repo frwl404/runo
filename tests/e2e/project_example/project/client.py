@@ -30,4 +30,4 @@ if __name__ == "__main__":
 
 # docker compose -f dev/docker-compose.yml run --build client ./client.py
 # docker compose -f dev/docker-compose.yml run --build --volume
-# /home/anton/repos/rego/examples/docker_compose/:/anton client /anton/dev/client.py
+# /home/anton/repos/dev/examples/docker_compose/:/anton client /anton/dev/client.py

@@ -2,16 +2,16 @@
 
 cd "$(dirname "$0")/../"
 
-source /tmp/rego_venv/.venv/bin/activate
+source /tmp/dev_venv/.venv/bin/activate
 
 echo ">>> setting actual version ($(git describe --tags))"
-sed -i "s/^__version__ = .*/__version__ = \"$(git describe --tags)\"/" ./rego
+sed -i "s/^__version__ = .*/__version__ = \"$(git describe --tags)\"/" ./dev
 
 echo ">>> formatting the code with ruff"
-ruff format ./rego tests
+ruff format ./dev tests
 
 echo ">>> fixing the code with ruff"
-ruff check ./rego tests --fix
+ruff check ./dev tests --fix
 
 echo ">>> mypy is checking the code"
-mypy ./rego tests
+mypy ./dev tests

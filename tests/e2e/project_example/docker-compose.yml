@@ -1,6 +1,6 @@
 services:
   client:
-    build: dev/
+    build: project/
     volumes:
       - ./:/app
     working_dir: /app
