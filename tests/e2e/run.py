@@ -44,7 +44,7 @@ def _test_command(command: dict):
 
 
 def main():
-    os.chdir("tests/e2e")
+    os.chdir("tests/e2e/project_example")
     config_under_the_test = "./dev.toml"
     with open(config_under_the_test, "r") as f:
         data = f.read()
