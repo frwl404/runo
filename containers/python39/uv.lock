@@ -230,7 +230,7 @@ wheels = [
 ]
 
 [[package]]
-name = "dev"
+name = "rego"
 version = "0.0.1"
 source = { virtual = "." }
 dependencies = [

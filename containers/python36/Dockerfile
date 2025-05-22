@@ -1,6 +1,6 @@
 FROM python:3.6-alpine
 
-WORKDIR /tmp/dev_venv
+WORKDIR /tmp/rego_venv
 COPY containers/python36/pip.in .
 COPY containers/python36/pip.lock .
 

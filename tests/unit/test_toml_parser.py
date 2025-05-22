@@ -4,7 +4,7 @@ from contextlib import contextmanager
 
 import pytest
 import toml
-from dev import TomlParser
+from rego import TomlParser
 
 
 @contextmanager
