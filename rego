@@ -2,14 +2,14 @@
 
 
 """
-dev is a single-file tool, which is aimed to simplify/unify/speedup
+rego is a single-file tool, which is aimed to simplify/unify/speedup
 development workflow for any repository/project.
-It is not important for dev if your project is written
-in Python/Go/Rust/C++/Java or something else, dev can
+It is not important for rego if your project is written
+in Python/Go/Rust/C++/Java or something else, rego can
 work with any project in the same way.
 
 Author: anton.chivkunov@gmail.com
-Official repo: https://github.com/frwl404/dev
+Official repo: https://github.com/frwl404/rego
 """
 
 import argparse
@@ -30,7 +30,7 @@ from typing import (
     Union,
 )
 
-__version__ = "0.0.1"
+__version__ = "0.0.0"
 
 # We use .toml format of config files, but parsers for this format
 # might be not available in old python versions (only in 3.11 tomllib
@@ -73,9 +73,9 @@ DEFAULT_CFG_PATH = f"{TOOL_RELATIVE_PATH}.toml"
 INITIAL_CONFIG_CONTENT = """
 # This is auto-generated file, which contains recommended set of commands and examples.
 # To make it working for you project, please update configuration.
-# For real-word examples, please check https://github.com/frwl404/dev
+# For real-word examples, please check https://github.com/frwl404/rego
 # You can find all details, needed for updating it to your needs in:
-# https://github.com/frwl404/dev/blob/main/docs/CONFIG
+# https://github.com/frwl404/rego/blob/main/docs/CONFIG
 
 #######################################################
 # Examples of commands
@@ -93,7 +93,7 @@ execute = "echo ALL TESTS PASSED"
 # to do cleanup
 after =["echo done > /dev/null"]
 # OPTIONALLY, you can specify examples of command usage.
-# if missing, ./dev will auto generate single example.
+# if missing, ./rego will auto generate single example.
 examples = ["tests --cov -vv", "tests --last-failed"]
 ## OPTIONALLY you can specify container, in which command should be executed by defaut.
 ## Container must be defined in the same file.
@@ -148,7 +148,7 @@ docker_image = "alpine:3.14"
 ## 1.2) Single container, based on your local Docker file:
 #[[docker_containers]]
 #name = "python39"
-## docker_file_path may be relative to './dev' file (recommended way),
+## docker_file_path may be relative to './rego' file (recommended way),
 ## or absolute, what is also supported, but this is not what you usually need.
 #docker_file_path = "containers/python39/Dockerfile"
 ## OPTIONALLY, you can provide build options, which you want
@@ -160,7 +160,7 @@ docker_image = "alpine:3.14"
 ## This is probably most common (and also most complicated case)
 #[[docker_containers]]
 #name = "app-with-db"
-## Compose file path may be relative to './dev' file (recommended way),
+## Compose file path may be relative to './rego' file (recommended way),
 ## or absolute, what is also supported, but this is not what you usually need.
 #docker_compose_file_path = "docker-compose.yml"
 ## You should specify those service in compose file, whose container should
@@ -252,7 +252,7 @@ def _get_value_from_options(all_options: Dict[str, Any], target_names: Set[str])
 def set_user_if_not_set_yet(docker_run_options: List[str]) -> List[str]:
     """
     By default, we want to run actual instructions inside container as
-    those user, which runs dev command on host. It is desired behavior
+    those user, which runs rego command on host. It is desired behavior
     for most part of the cases, but it can be overridden by config.
     """
     user_already_set = {"-u", "--user"} & set(docker_run_options)
@@ -455,9 +455,9 @@ def _read_config(config_path: Path) -> dict:
 class TomlParser:
     """
     It is a very-very simplified parser of toml files, which we will
-    use to parse dev config, if tomllib/tomli is not available on target system.
-    This parser was tested only for basic dev config files and not supposed to
-    be used for something else. Even for dev-specific configs it might have
+    use to parse rego config, if tomllib/tomli is not available on target system.
+    This parser was tested only for basic rego config files and not supposed to
+    be used for something else. Even for rego-specific configs it might have
     some restrictions (multiline lists, or something else might be not supported).
     Hope this parser will not get into the game too often.
     """
@@ -954,7 +954,7 @@ def _show_configured_containers_and_exit(cfg: dict):
 
 
 def _show_version_and_exit():
-    _logger.info(f"dev version: {__version__}")
+    _logger.info(f"rego version: {__version__}")
 
     sys.exit(os.EX_OK)
 
@@ -992,7 +992,7 @@ def _parse_arguments() -> argparse.Namespace:
         "-v",
         "--version",
         action="store_true",
-        help="show actual version of dev",
+        help="show actual version of rego",
     )
     parser.add_argument(
         "command",

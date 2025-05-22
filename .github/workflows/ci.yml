@@ -1,4 +1,4 @@
-name: dev-it-easy
+name: rego
 
 on:
   push:
@@ -18,24 +18,24 @@ jobs:
       - uses: actions/checkout@v4
       # Static type checking
       - name: mypy
-        run: ./dev mypy dev tests
+        run: ./rego mypy rego tests
       # Linter
       - name: ruff (linter)
-        run: ./dev ruff check dev tests
+        run: ./rego ruff check rego tests
       # Formatter
       - name: ruff (formatter)
-        run: ./dev ruff format dev tests --check
+        run: ./rego ruff format rego tests --check
 #      # Check that version was set correctly
 #      - name: version checker
 #        run: |
-#          expected="dev version: $(git describe --tags)"
-#          actual="$(./dev -v)"
+#          expected="rego version: $(git describe --tags)"
+#          actual="$(./rego -v)"
 #
 #          if [ "$actual" = "$expected" ]; then
 #            echo "OK"
 #          else
 #            echo "Version doesn't match expected ($expected)."
-#            echo "Make sure you run './dev pre-commit'"
+#            echo "Make sure you run './rego pre-commit'"
 #            exit 1
 #          fi
 
@@ -47,7 +47,7 @@ jobs:
       - uses: actions/checkout@v4
       # unit tests
       - name: unit tests
-        run: ./dev -c "*" test
+        run: ./rego -c "*" test
 
   end-to-end-tests:
 
@@ -57,4 +57,4 @@ jobs:
       - uses: actions/checkout@v4
       # e2d tests
       - name: e2e tests
-        run: ./dev e2e
+        run: ./rego e2e
