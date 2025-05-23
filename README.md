@@ -1,6 +1,7 @@
 # `rego`: A single-file tool that greatly simplifies the development workflow for any repository.
 
 [![CI](https://github.com/frwl404/dev-it-easy/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/frwl404/dev-it-easy/actions/workflows/ci.yml)
+<img src="https://img.shields.io/badge/supported_python-from_3.6_to_3.12-limegreen" alt="Supported Python versions">
 
 ## 🔍 Problem: nowadays, every repo has its own development workflow
 When switching to a new repository, one of the first questions is: *"How do I run build/lint/tests/... here?"*  
