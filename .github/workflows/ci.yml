@@ -51,7 +51,7 @@ jobs:
       - name: python39
         run: ./rego -c python39 test
       - name: python312
-        run: ./rego -c python312 test --cov --cov-report json
+        run: ./rego -c python312 test --cov --cov-report xml
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         env:
