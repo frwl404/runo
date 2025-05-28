@@ -1,7 +1,7 @@
 # `rego`: A single-file tool that greatly simplifies the development workflow for any repository.
 
 [![CI](https://github.com/frwl404/dev-it-easy/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/frwl404/dev-it-easy/actions/workflows/ci.yml)
-![codecov](https://codecov.io/gh/frwl404/runo/branch/main/graph/badge.svg)
+[![codecov](https://codecov.io/gh/frwl404/runo/branch/master/graph/badge.svg)](https://app.codecov.io/gh/frwl404/runo)
 <img src="https://img.shields.io/badge/supported_python-from_3.6_to_3.12-limegreen" alt="Supported Python versions">
 
 ## 🔍 Problem: nowadays, every repo has its own development workflow
