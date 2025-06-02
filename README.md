@@ -1,16 +1,18 @@
-# `rego`: A single-file tool that greatly simplifies the development workflow for any repository.
+# Single-file tool that greatly simplifies the development workflow for any repository.
 
 [![CI](https://github.com/frwl404/dev-it-easy/actions/workflows/ci.yml/badge.svg?event=push)](https://github.com/frwl404/dev-it-easy/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/frwl404/runo/branch/master/graph/badge.svg)](https://app.codecov.io/gh/frwl404/runo)
-<img src="https://img.shields.io/badge/supported_python-from_3.6_to_3.12-limegreen" alt="Supported Python versions">
+![Static Badge](https://img.shields.io/badge/supported_python-from_3.6_to_3.13-limegreen)
 
 ## 🔍 Problem: nowadays, every repo has its own development workflow
-When switching to a new repository, one of the first questions is: *"How do I run build/lint/tests/... here?"*  
+When switching to a new repository, one of the first questions is: 
+*"How do I run build/lint/tests/... here?"*  
 
 Good repositories have documentation, explaining the procedure. 
 Ideally, they use **Docker**, so you don’t need to install anything, 
 but need to know right commands to start with. 
-However, the next repository you work on, will likely have a **different** process - maybe also Docker-based, but still different.  
+However, the next repository you work on, will likely have a **different** 
+process - maybe also Docker-based, but still different.  
 
 **The result:**
 - Constantly learning/developing different workflows slows you down;
@@ -20,8 +22,8 @@ However, the next repository you work on, will likely have a **different** proce
 
 
 ## ✅ Solution: `rego`
-Imagine you could enter **any repo** and immediately know **what** can be done and **how** to do it.  
-With `rego`, just run:  
+Imagine you could enter **any repo** and immediately know **what** can 
+be done and **how** to do it. With `rego`, just run:  
 ```
 > ./rego
 Following commands are available:
