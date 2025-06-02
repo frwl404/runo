@@ -56,7 +56,9 @@ class TestArguments:
             "                        of available commands.",
             "",
             "option",  # can be "optional arguments:" in old versions and "options:" on new
-            "-c CONTAINER, --container CONTAINER",
+            # can be "CONTAINER, --container CONTAINER" in old versions, but:
+            # "-c, --container CONTAINER" on new, starting from Python 3.13
+            ", --container CONTAINER",
             "                        force command to be run in specific container(s). Use",
             '                        "*" to run in all containers',
             "  -d, --debug           verbose output",

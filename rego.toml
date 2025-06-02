@@ -24,7 +24,7 @@ docker_run_options = "-it -v .:/app -w /app"
 
 [[commands]]
 name = "pre-commit"
-description = "quick checks/fixes of code formatting (ruff/mypy)"
+description = "quick checks/fixes of code formatting (ruff/mypy)."
 execute = "scripts/pre_commit.sh"
 docker_container = "python39"
 docker_run_options = "-v .:/app -w /app"
@@ -59,9 +59,29 @@ name = "python36"
 docker_file_path = "containers/python36/Dockerfile"
 
 [[docker_containers]]
+name = "python37"
+docker_file_path = "containers/python37/Dockerfile"
+
+[[docker_containers]]
+name = "python38"
+docker_file_path = "containers/python38/Dockerfile"
+
+[[docker_containers]]
 name = "python39"
 docker_file_path = "containers/python39/Dockerfile"
 
 [[docker_containers]]
+name = "python310"
+docker_file_path = "containers/python310/Dockerfile"
+
+[[docker_containers]]
+name = "python311"
+docker_file_path = "containers/python311/Dockerfile"
+
+[[docker_containers]]
 name = "python312"
 docker_file_path = "containers/python312/Dockerfile"
+
+[[docker_containers]]
+name = "python313"
+docker_file_path = "containers/python313/Dockerfile"

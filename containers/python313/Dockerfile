@@ -1,16 +1,12 @@
 # At the moment of writing UV can't install python on top of alpine,
 # So just take python image and install uv on top of it
-FROM python:3.9-alpine
+FROM python:3.13-alpine
 
 # UV, see https://docs.astral.sh/uv/guides/integration/docker/#available-images
 COPY --from=ghcr.io/astral-sh/uv:0.6.4 /uv /uvx /bin/
 
 WORKDIR /tmp/rego_venv
-COPY containers/python39/pyproject.toml .
-COPY containers/python39/uv.lock .
+COPY containers/python313/pyproject.toml .
+COPY containers/python313/uv.lock .
 
-# git is needed only in those container, which is used for "pre-commit"
-# command, because it uses git to get information about tag, which should
-# be used in __version.
-RUN apk add git
 RUN uv sync
