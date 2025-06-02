@@ -1,4 +1,4 @@
-# `rego` Config File Reference
+# `runo` Config File Reference
 
 ## Table of content
 - [Introduction](#introduction)
@@ -19,7 +19,7 @@
 
 ## Introduction
 
-`rego` config is a regular `.toml` file, which is needed to let `rego` know: 
+`runo` config is a regular `.toml` file, which is needed to let `runo` know: 
 1) Which commands you want to see in your repo (`build`/`test`/`...`),
 2) Which docker containers are going to be used by commands in your project.
 3) What every command means exactly. For example, for one project `test` command may mean:  
@@ -27,7 +27,7 @@
 For another project it may mean:  
 "_run `go test` in `app` container of `docker-compose.yml`_"
 
-Therefore, `rego` config contains 2 lists of objects: 
+Therefore, `runo` config contains 2 lists of objects: 
 [commands](#commands) and [containers](#containers), which we will discuss in details in the next 2 sections.
 
 ## Commands
@@ -58,7 +58,7 @@ Now let's discuss all parameters in details.
 
 ### Mandatory fields.
 
-Configuration of `rego` commands is quite simple and contains only 3 mandatory fields:
+Configuration of `runo` commands is quite simple and contains only 3 mandatory fields:
 
 #### `name` (`string`)
 
@@ -77,15 +77,15 @@ which will be shown as help message to user. Examples:
 #### `execute` (`string`)
 
 Main part of the command. It is `shell` command or script, 
-which will be executed by `rego` under the hood (inside container 
+which will be executed by `runo` under the hood (inside container 
 or natively). Examples:
 - `./scripts/build.sh`,
 - `go test`,
 - `pytest`,
 
 All arguments, which you will pass to command via CLI,
-will be forwarded by `rego` to this `execute` instruction.
-For example, if you have the following rego command: 
+will be forwarded by `runo` to this `execute` instruction.
+For example, if you have the following runo command: 
 ```toml
 [[commands]]
 name = "test"
@@ -94,9 +94,9 @@ execute = "pytest --cov"
 ```
 and will run it in the following way:
 ```
-> ./rego test --pdb
+> ./runo test --pdb
 ```
-then resulting command, which will be executed by `rego` will be: `pytest --cov --pdb`,
+then resulting command, which will be executed by `runo` will be: `pytest --cov --pdb`,
 
 ### Optional fields.
 
@@ -126,7 +126,7 @@ with help of `-c`/`--container` option.
 
 Usually you want to use some `docker run` options when executing command 
 (mount dir with your repo inside container, or something else). 
-This field instruct `rego` to pass corresponding options to `run` command 
+This field instruct `runo` to pass corresponding options to `run` command 
 of corresponding container. Please refer to the 
 [official docker documentation](https://docs.docker.com/reference/cli/docker/container/run/) 
 to see what can be used here.
@@ -134,10 +134,10 @@ to see what can be used here.
 
 ## Containers
 
-While you can run `rego` command natively on your OS, 
+While you can run `runo` command natively on your OS, 
 most typical scenario would be to do it in some docker container. 
-With `rego` you will configure it only once and then will not need 
-to worry about container builds, tags, options and so on - `rego` will handle it.  
+With `runo` you will configure it only once and then will not need 
+to worry about container builds, tags, options and so on - `runo` will handle it.  
 3 types of Docker containers are supported (if some other needed, please let me know):
 - [Containers, based on images from repo](#containers-based-on-images-from-repo),
 - [Containers, based on images, built locally with `Dockerfile`](#containers-based-on-images-built-locally-with-dockerfile)
@@ -146,7 +146,7 @@ to worry about container builds, tags, options and so on - `rego` will handle it
 ### Containers, based on images from repo
 
 This is the simplest case. For such containers it is enough to specify: 
-- `name`: unique identifier of container for rego,
+- `name`: unique identifier of container for runo,
 - `docker_image`: name of the repo image, which should be used for this container
 
 Example:
@@ -161,14 +161,14 @@ docker_image = "alpine:3.14"
 
 This case is a bit more difficult, but more popular as well.
 Here you will need to specify:
-- `name`: unique identifier of container for rego,
+- `name`: unique identifier of container for runo,
 - `docker_file_path`: relative or absolute path to `Dockerfile`, which should be used for container build, 
 - `docker_build_options`: this one is **OPTIONAL**. 
-You can instruct rego to use any option, which is supported in 
+You can instruct runo to use any option, which is supported in 
 [official docker documentation](https://docs.docker.com/reference/cli/docker/buildx/build/).  
 
 *Please note that providing `tag` in `docker_build_options` is not mandatory. 
-When missing, `rego` will generate it automatically in format `<container name>-for-<repo name>`.
+When missing, `runo` will generate it automatically in format `<container name>-for-<repo name>`.
 
 Example:
 
@@ -183,10 +183,10 @@ docker_build_options = "--tag img-defined-by-docker-file"
 
 This is most complex, but probably most popular case.
 Here you will need to specify:
-- `name`: unique identifier of container for rego,
+- `name`: unique identifier of container for runo,
 - `docker_compose_file_path`: relative or absolute path to `docker-compose.yml`, 
 - `docker_compose_service`: name of the service/container from docker compose file, which should be used for commands execution.
-- `docker_compose_options`: this one is **OPTIONAL**. You can instruct rego to use any option, which is supported in 
+- `docker_compose_options`: this one is **OPTIONAL**. You can instruct runo to use any option, which is supported in 
 [official docker documentation](https://docs.docker.com/reference/cli/docker/compose/).  
 
 Example:

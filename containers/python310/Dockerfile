@@ -5,7 +5,7 @@ FROM python:3.10-alpine
 # UV, see https://docs.astral.sh/uv/guides/integration/docker/#available-images
 COPY --from=ghcr.io/astral-sh/uv:0.6.4 /uv /uvx /bin/
 
-WORKDIR /tmp/rego_venv
+WORKDIR /tmp/runo_venv
 COPY containers/python310/pyproject.toml .
 COPY containers/python310/uv.lock .
 
