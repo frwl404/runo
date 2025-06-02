@@ -39,28 +39,68 @@ jobs:
 #            exit 1
 #          fi
 
-  unit-tests:
-
+  python36:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-      # unit tests
-      - name: python36
-        run: ./rego -c python36 test
-      - name: python39
+      - name: unit test
+        run: ./rego -c python36
+
+  python37:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: unit test
+        run: ./rego -c python37 test
+
+  python38:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: unit test
+        run: ./rego -c python38 test
+
+  python39:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: unit test
         run: ./rego -c python39 test
-      - name: python312
-        run: ./rego -c python312 test --cov --cov-report json
+
+  python310:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: unit test
+        run: ./rego -c python310 test
+
+  python311:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: unit test
+        run: ./rego -c python311 test
+
+  python312:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: unit test
+        run: ./rego -c python312 test
+
+  python313:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: unit test
+        run: ./rego -c python313 test --cov --cov-report json
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
   end-to-end-tests:
-
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       # e2d tests
