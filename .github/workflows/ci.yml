@@ -18,24 +18,24 @@ jobs:
       - uses: actions/checkout@v4
       # Static type checking
       - name: mypy
-        run: ./rego mypy rego tests
+        run: ./runo mypy runo tests
       # Linter
       - name: ruff (linter)
-        run: ./rego ruff check rego tests
+        run: ./runo ruff check runo tests
       # Formatter
       - name: ruff (formatter)
-        run: ./rego ruff format rego tests --check
+        run: ./runo ruff format runo tests --check
 #      # Check that version was set correctly
 #      - name: version checker
 #        run: |
-#          expected="rego version: $(git describe --tags)"
-#          actual="$(./rego -v)"
+#          expected="runo version: $(git describe --tags)"
+#          actual="$(./runo -v)"
 #
 #          if [ "$actual" = "$expected" ]; then
 #            echo "OK"
 #          else
 #            echo "Version doesn't match expected ($expected)."
-#            echo "Make sure you run './rego pre-commit'"
+#            echo "Make sure you run './runo pre-commit'"
 #            exit 1
 #          fi
 
@@ -44,56 +44,56 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: unit test
-        run: ./rego -c python36
+        run: ./runo -c python36
 
   python37:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: unit test
-        run: ./rego -c python37 test
+        run: ./runo -c python37 test
 
   python38:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: unit test
-        run: ./rego -c python38 test
+        run: ./runo -c python38 test
 
   python39:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: unit test
-        run: ./rego -c python39 test
+        run: ./runo -c python39 test
 
   python310:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: unit test
-        run: ./rego -c python310 test
+        run: ./runo -c python310 test
 
   python311:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: unit test
-        run: ./rego -c python311 test
+        run: ./runo -c python311 test
 
   python312:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: unit test
-        run: ./rego -c python312 test
+        run: ./runo -c python312 test
 
   python313:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: unit test
-        run: ./rego -c python313 test --cov --cov-report json
+        run: ./runo -c python313 test --cov --cov-report json
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
         env:
@@ -105,4 +105,4 @@ jobs:
       - uses: actions/checkout@v4
       # e2d tests
       - name: e2e tests
-        run: ./rego e2e
+        run: ./runo e2e

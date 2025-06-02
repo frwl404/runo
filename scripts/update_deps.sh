@@ -1,6 +1,6 @@
 #!/bin/sh
 
-cd "$(dirname "$0")/../containers/$(printenv REGO_CONTAINER_NAME)/"
+cd "$(dirname "$0")/../containers/$(printenv RUNO_CONTAINER_NAME)/"
 
 if command -v uv 2>&1 >/dev/null
 then

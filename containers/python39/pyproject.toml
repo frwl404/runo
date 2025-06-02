@@ -1,5 +1,5 @@
 [project]
-name = "rego"
+name = "runo"
 version = "0.0.1"
 description = "Tool for managing repository"
 readme = "README.md"

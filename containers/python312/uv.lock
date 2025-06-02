@@ -165,7 +165,7 @@ wheels = [
 ]
 
 [[package]]
-name = "rego"
+name = "runo"
 version = "0.0.1"
 source = { virtual = "." }
 

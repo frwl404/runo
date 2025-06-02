@@ -9,7 +9,7 @@ from unittest.mock import call, patch
 
 import pytest
 import toml
-from rego import main  # noqa
+from runo import main  # noqa
 
 _OK_EXIT_CODE_REGEX = f"^{os.EX_OK}$"
 
@@ -38,7 +38,7 @@ def _expected_docker_run_options(docker_run_options_str: str):
 class TestArguments:
     @pytest.mark.parametrize("help_flag", ["-h", "--help"])
     def test_help_message(self, capfd, monkeypatch, help_flag):
-        monkeypatch.setattr(sys, "argv", ["rego", help_flag])
+        monkeypatch.setattr(sys, "argv", ["runo", help_flag])
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
             main()
@@ -46,13 +46,13 @@ class TestArguments:
         std_out, std_err = capfd.readouterr()
         assert std_err == ""
         expected_strings = [
-            "usage: rego [-c CONTAINER] [-d] [--config CONFIG] [--containers] [--init] [-h]",
+            "usage: runo [-c CONTAINER] [-d] [--config CONFIG] [--containers] [--init] [-h]",
             "            [-v]",
             "            ...",
             "",
             "positional arguments:",
             "  command               exact command to be executed (might be supplemented",
-            "                        with options). You could try `./rego.py` to get list",
+            "                        with options). You could try `./runo.py` to get list",
             "                        of available commands.",
             "",
             "option",  # can be "optional arguments:" in old versions and "options:" on new
@@ -66,7 +66,7 @@ class TestArguments:
             "  --init                create and initialize config file",
             "  --containers          show all containers, present in the config file",
             "  -h, --help",
-            "  -v, --version         show actual version of rego",
+            "  -v, --version         show actual version of runo",
             "",
         ]
 
@@ -76,14 +76,14 @@ class TestArguments:
 
     @pytest.mark.parametrize("version_flag", ["-v", "--version"])
     def test_version(self, capfd, monkeypatch, version_flag):
-        monkeypatch.setattr(sys, "argv", ["rego", version_flag])
+        monkeypatch.setattr(sys, "argv", ["runo", version_flag])
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
             main()
 
         std_out, std_err = capfd.readouterr()
         assert std_err == ""
-        assert re.fullmatch(r"rego version: \d+\.\d+\.\d+\n", std_out)
+        assert re.fullmatch(r"runo version: \d+\.\d+\.\d+\n", std_out)
 
     @pytest.mark.parametrize(
         "config_content, expected_output",
@@ -118,8 +118,8 @@ class TestArguments:
         ],
     )
     def test_containers(self, capfd, monkeypatch, config_content, expected_output):
-        monkeypatch.setattr(sys, "argv", ["rego", "--containers"])
-        config_path = pathlib.Path(os.getcwd()) / "rego.py.toml"
+        monkeypatch.setattr(sys, "argv", ["runo", "--containers"])
+        config_path = pathlib.Path(os.getcwd()) / "runo.py.toml"
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
             toml.dumps(config_content),
@@ -133,7 +133,7 @@ class TestArguments:
 
     @pytest.mark.parametrize("config_flag", ["--config"])
     def test_config_flag(self, capfd, monkeypatch, config_flag, config_path):
-        monkeypatch.setattr(sys, "argv", ["rego", config_flag, str(config_path)])
+        monkeypatch.setattr(sys, "argv", ["runo", config_flag, str(config_path)])
 
         config_content = toml.dumps(
             {
@@ -162,14 +162,14 @@ class TestArguments:
         assert (
             std_out
             == """Following commands are available:
-  * test - run tests ['./rego.py test --pdb']
-  * build - build the project ['./rego.py build']
+  * test - run tests ['./runo.py test --pdb']
+  * build - build the project ['./runo.py build']
 """
         )
 
     @pytest.mark.parametrize("debug_flag", ["-d", "--debug"])
     def test_debug_flag(self, capfd, monkeypatch, debug_flag):
-        monkeypatch.setattr(sys, "argv", ["rego", debug_flag])
+        monkeypatch.setattr(sys, "argv", ["runo", debug_flag])
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
             main()
@@ -180,12 +180,12 @@ class TestArguments:
             std_out
             == """[DEBUG] debug logging enabled
 Config is not created yet.
-Please initialize it with './rego.py --init'
+Please initialize it with './runo.py --init'
 """
         )
 
     def test_unexpected_option(self, capfd, monkeypatch):
-        monkeypatch.setattr(sys, "argv", ["rego", "--wrong-option"])
+        monkeypatch.setattr(sys, "argv", ["runo", "--wrong-option"])
 
         with pytest.raises(SystemExit, match="^2$"):
             main()
@@ -194,10 +194,10 @@ Please initialize it with './rego.py --init'
         assert std_out == ""
         assert (
             std_err
-            == """usage: rego [-c CONTAINER] [-d] [--config CONFIG] [--containers] [--init] [-h]
+            == """usage: runo [-c CONTAINER] [-d] [--config CONFIG] [--containers] [--init] [-h]
             [-v]
             ...
-rego: error: unrecognized arguments: --wrong-option
+runo: error: unrecognized arguments: --wrong-option
 """
         )
 
@@ -210,9 +210,9 @@ class TestInit:
     INIT_CONTENT = """
 # This is auto-generated file, which contains recommended set of commands and examples.
 # To make it working for you project, please update configuration.
-# For real-word examples, please check https://github.com/frwl404/rego
+# For real-word examples, please check https://github.com/frwl404/runo
 # You can find all details, needed for updating it to your needs in:
-# https://github.com/frwl404/rego/blob/main/docs/CONFIG
+# https://github.com/frwl404/runo/blob/main/docs/CONFIG
 
 #######################################################
 # Examples of commands
@@ -230,7 +230,7 @@ execute = "echo ALL TESTS PASSED"
 # to do cleanup
 after =["echo done > /dev/null"]
 # OPTIONALLY, you can specify examples of command usage.
-# if missing, ./rego will auto generate single example.
+# if missing, ./runo will auto generate single example.
 examples = ["tests --cov -vv", "tests --last-failed"]
 ## OPTIONALLY you can specify container, in which command should be executed by defaut.
 ## Container must be defined in the same file.
@@ -285,7 +285,7 @@ docker_image = "alpine:3.14"
 ## 1.2) Single container, based on your local Docker file:
 #[[docker_containers]]
 #name = "python39"
-## docker_file_path may be relative to './rego' file (recommended way),
+## docker_file_path may be relative to './runo' file (recommended way),
 ## or absolute, what is also supported, but this is not what you usually need.
 #docker_file_path = "containers/python39/Dockerfile"
 ## OPTIONALLY, you can provide build options, which you want
@@ -297,7 +297,7 @@ docker_image = "alpine:3.14"
 ## This is probably most common (and also most complicated case)
 #[[docker_containers]]
 #name = "app-with-db"
-## Compose file path may be relative to './rego' file (recommended way),
+## Compose file path may be relative to './runo' file (recommended way),
 ## or absolute, what is also supported, but this is not what you usually need.
 #docker_compose_file_path = "docker-compose.yml"
 ## You should specify those service in compose file, whose container should
@@ -314,8 +314,8 @@ docker_image = "alpine:3.14"
         assert path.read_text() == expected_content
 
     def test_fresh_setup(self, capfd, monkeypatch):
-        monkeypatch.setattr(sys, "argv", ["rego", "--init"])
-        default_config_path = pathlib.Path("rego.py.toml")
+        monkeypatch.setattr(sys, "argv", ["runo", "--init"])
+        default_config_path = pathlib.Path("runo.py.toml")
         assert default_config_path.is_file() is False
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
@@ -329,8 +329,8 @@ docker_image = "alpine:3.14"
         assert std_out == f"config created: {default_config_path}\n"
 
     def test_already_exist(self, capfd, monkeypatch):
-        monkeypatch.setattr(sys, "argv", ["rego", "--init"])
-        default_config_path = pathlib.Path("rego.py.toml")
+        monkeypatch.setattr(sys, "argv", ["runo", "--init"])
+        default_config_path = pathlib.Path("runo.py.toml")
         open(default_config_path, "a").close()
 
         with pytest.raises(SystemExit, match=f"^{os.EX_PROTOCOL}$"):
@@ -342,7 +342,7 @@ docker_image = "alpine:3.14"
         std_out, std_err = capfd.readouterr()
         assert (
             std_err
-            == """file 'rego.py.toml' already exist.
+            == """file 'runo.py.toml' already exist.
 Please review that file. If it is needed, you can either:
 - keep it on the same place, and generate new config under different path/name (use '--config')
 - move it to other place and try to call '--init' again
@@ -354,9 +354,9 @@ If you don't need that file, just remove it and try again.
     def test_init_under_non_default_path(self, capfd, monkeypatch):
         non_default_config_path = pathlib.Path("test_config.toml")
         monkeypatch.setattr(
-            sys, "argv", ["rego", "--init", "--config", str(non_default_config_path)]
+            sys, "argv", ["runo", "--init", "--config", str(non_default_config_path)]
         )
-        default_config_path = pathlib.Path("rego.py.toml")
+        default_config_path = pathlib.Path("runo.py.toml")
         open(default_config_path, "a").close()
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
@@ -374,7 +374,7 @@ If you don't need that file, just remove it and try again.
 
 class TestMainOutput:
     def test_without_config_file(self, capfd, monkeypatch):
-        monkeypatch.setattr(sys, "argv", ["rego"])
+        monkeypatch.setattr(sys, "argv", ["runo"])
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX):
             main()
@@ -384,13 +384,13 @@ class TestMainOutput:
         assert (
             std_out
             == """Config is not created yet.
-Please initialize it with './rego.py --init'
+Please initialize it with './runo.py --init'
 """
         )
 
     def test_config_file(self, capfd, monkeypatch):
-        config_path = pathlib.Path(os.getcwd()) / "rego.py.toml"
-        monkeypatch.setattr(sys, "argv", ["rego"])
+        config_path = pathlib.Path(os.getcwd()) / "runo.py.toml"
+        monkeypatch.setattr(sys, "argv", ["runo"])
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
             toml.dumps(
@@ -423,12 +423,12 @@ Please initialize it with './rego.py --init'
         assert (
             std_out
             == """Following commands are available:
-  * test - good command ['./rego.py pytest --pdb']
+  * test - good command ['./runo.py pytest --pdb']
 """
         )
 
     def test_wrong_path_to_config_file(self, capfd, monkeypatch):
-        monkeypatch.setattr(sys, "argv", ["rego", "--config", "/tmp/missing.toml"])
+        monkeypatch.setattr(sys, "argv", ["runo", "--config", "/tmp/missing.toml"])
 
         with pytest.raises(SystemExit, match=f"^{os.EX_UNAVAILABLE}$"):
             main()
@@ -551,7 +551,7 @@ digits, '-', or '_', got '?not_allowed_also'"]
         expected_err_out,
         expected_std_out,
     ):
-        monkeypatch.setattr(sys, "argv", ["rego", "--config", str(config_path)])
+        monkeypatch.setattr(sys, "argv", ["runo", "--config", str(config_path)])
 
         with pytest.raises(SystemExit, match=f"^{expected_rc}$"), _config_file(
             toml.dumps(config_content), config_path
@@ -685,7 +685,7 @@ as well, but they are not found: {'docker_compose_service'}"]
         expected_std_out,
         expected_std_err,
     ):
-        monkeypatch.setattr(sys, "argv", ["rego", "--config", str(config_path), "--containers"])
+        monkeypatch.setattr(sys, "argv", ["runo", "--config", str(config_path), "--containers"])
 
         with pytest.raises(SystemExit, match=f"^{expected_rc}$"), _config_file(
             toml.dumps(config_content), config_path
@@ -703,7 +703,7 @@ class BaseCommandsTest:
     We have too many scenarios to cover. Copy-pasting simple tests many times
     might be even more annoying and error-prone.
 
-    Commands can be executed with rego in 4 different environments:
+    Commands can be executed with runo in 4 different environments:
     - natively, directly on host machine
     - in locally built container
     - in container based on repo image
@@ -782,7 +782,7 @@ class BaseCommandsTest:
         config_content.update(config_overrides)
 
         what_to_run = [
-            "rego",
+            "runo",
             "-d",
             "--config",
             str(config_path),
@@ -798,7 +798,7 @@ class BaseCommandsTest:
 
         return capfd.readouterr()
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_ok(
         self,
         patched_run,
@@ -1036,7 +1036,7 @@ class TestLocallyBuiltContainerCommands(BaseCommandsTest):
         )
 
         run_command = list_to_str(
-            ["docker", "run", "--quiet", "-e", "REGO_CONTAINER_NAME=test_docker_file"]
+            ["docker", "run", "--quiet", "-e", "RUNO_CONTAINER_NAME=test_docker_file"]
             + _expected_docker_run_options(docker_run_options_str)
             + [helpers["expected_tag"]]
             + [self._generate_command_to_run(command, run_options)]
@@ -1044,7 +1044,7 @@ class TestLocallyBuiltContainerCommands(BaseCommandsTest):
 
         return [build_command, run_command]
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_build_failed(
         self,
         patched_run,
@@ -1053,13 +1053,13 @@ class TestLocallyBuiltContainerCommands(BaseCommandsTest):
         monkeypatch,
     ):
         """
-        When rego runs command in container, defined by local Dockerfile,
+        When runo runs command in container, defined by local Dockerfile,
         it should first (re)build the container. If build fails, we should
         not proceed further.
         """
         patched_run.return_value.returncode = 13
 
-        monkeypatch.setattr(sys, "argv", ["rego", "--config", str(config_path), "test_cmd"])
+        monkeypatch.setattr(sys, "argv", ["runo", "--config", str(config_path), "test_cmd"])
         config_content = {
             "commands": [
                 {
@@ -1132,7 +1132,7 @@ class TestContainerFromImageCommands(BaseCommandsTest):
         container_config = env_specific_data["config_overrides"]["docker_containers"][0]
 
         run_command = list_to_str(
-            ["docker", "run", "--quiet", "-e", "REGO_CONTAINER_NAME=test_image_from_repo"]
+            ["docker", "run", "--quiet", "-e", "RUNO_CONTAINER_NAME=test_image_from_repo"]
             + _expected_docker_run_options(docker_run_options_str)
             + [container_config["docker_image"]]
             + [self._generate_command_to_run(command, run_options)]
@@ -1311,7 +1311,7 @@ class TestContainersSelection:
                 "run",
                 "--quiet",
                 "-e",
-                f"REGO_CONTAINER_NAME={container_name}",
+                f"RUNO_CONTAINER_NAME={container_name}",
                 "--user",
                 "$(id -u):$(id -g)",
                 image_name,
@@ -1327,7 +1327,7 @@ class TestContainersSelection:
     ):
         container_options = container_options or []
         return [
-            "rego",
+            "runo",
             "-d",
             *container_options,
             "--config",
@@ -1335,7 +1335,7 @@ class TestContainersSelection:
             command_name,
         ]
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_single_container(
         self,
         patched_run,
@@ -1368,7 +1368,7 @@ class TestContainersSelection:
             assert f"[DEBUG] running: {expected_call}" in out
             patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_multiple_containers(
         self,
         patched_run,
@@ -1408,7 +1408,7 @@ class TestContainersSelection:
             assert f"[DEBUG] running: {expected_call}" in out
             patched_run.assert_has_calls(calls=[call(expected_call, shell=True)])
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_all_containers(
         self,
         patched_run,
@@ -1497,7 +1497,7 @@ class TestContainersSelection:
             ]
         )
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_part_of_containers_fail(
         self,
         patched_run,
@@ -1580,7 +1580,7 @@ class BaseContainersTest:
 class TestDropInteractiveMode(BaseContainersTest):
     """
     When input is not TTY (for example in case of github actions runner),
-    rego drops -i/--interactive options, if they are present, because they
+    runo drops -i/--interactive options, if they are present, because they
     will lead to failure on such setup(s).
     """
 
@@ -1625,7 +1625,7 @@ class TestDropInteractiveMode(BaseContainersTest):
         tty_mock = mocker.patch("sys.stdin.isatty")
         tty_mock.return_value = False
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_no_tty(
         self,
         patched_run,
@@ -1641,7 +1641,7 @@ class TestDropInteractiveMode(BaseContainersTest):
         config_content = self.generate_config_content(containers_to_test, initial_options)
 
         patched_run.return_value.returncode = 0
-        monkeypatch.setattr(sys, "argv", ["rego", "-d", "--config", str(config_path), "test_cmd"])
+        monkeypatch.setattr(sys, "argv", ["runo", "-d", "--config", str(config_path), "test_cmd"])
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
             toml.dumps(config_content), config_path
@@ -1658,7 +1658,7 @@ class TestDropInteractiveMode(BaseContainersTest):
 
 class TestForwardUser(BaseContainersTest):
     """
-    By default, rego runs docker as the same user, which ran rego command,
+    By default, runo runs docker as the same user, which ran runo command,
     i.e. it adds "-u $(id -u):$(id -g)" to docker run options, if "-u" was
     not set by user directly, via config.
     """
@@ -1678,7 +1678,7 @@ class TestForwardUser(BaseContainersTest):
     def options_user_not_set(self, request):
         return request.param
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_user_not_set_yet(
         self,
         patched_run,
@@ -1694,7 +1694,7 @@ class TestForwardUser(BaseContainersTest):
         config_content = self.generate_config_content(containers_to_test, initial_options)
 
         patched_run.return_value.returncode = 0
-        monkeypatch.setattr(sys, "argv", ["rego", "-d", "--config", str(config_path), "test_cmd"])
+        monkeypatch.setattr(sys, "argv", ["runo", "-d", "--config", str(config_path), "test_cmd"])
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
             toml.dumps(config_content), config_path
@@ -1728,7 +1728,7 @@ class TestForwardUser(BaseContainersTest):
     def options_user_set(self, request):
         return request.param
 
-    @patch("rego.subprocess.run")
+    @patch("runo.subprocess.run")
     def test_user_already_set(
         self,
         patched_run,
@@ -1745,7 +1745,7 @@ class TestForwardUser(BaseContainersTest):
         config_content = self.generate_config_content(containers_to_test, initial_options)
 
         patched_run.return_value.returncode = 0
-        monkeypatch.setattr(sys, "argv", ["rego", "-d", "--config", str(config_path), "test_cmd"])
+        monkeypatch.setattr(sys, "argv", ["runo", "-d", "--config", str(config_path), "test_cmd"])
 
         with pytest.raises(SystemExit, match=_OK_EXIT_CODE_REGEX), _config_file(
             toml.dumps(config_content), config_path

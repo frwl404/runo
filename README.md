@@ -21,46 +21,46 @@ process - maybe also Docker-based, but still different.
 - Too complex/unusual workflow may scare away new contributors.
 
 
-## ✅ Solution: `rego`
+## ✅ Solution: `runo`
 Imagine you could enter **any repo** and immediately know **what** can 
-be done and **how** to do it. With `rego`, just run:  
+be done and **how** to do it. With `runo`, just run:  
 ```
-> ./rego
+> ./runo
 Following commands are available:
-  * test - runs unit tests (pytest) ['./rego tests --cov -vv', './rego tests --last-failed']
-  * build - builds the project ['./rego build']
-  * shell - debug container by running shell in interactive mode (keep container running) ['./rego shell']
-  * pre-commit - quick checks/fixes of code formatting (ruff/mypy) ['./rego pre-commit']
-  * update-deps - updates dependencies, used in project, to the latest versions ['./rego update-deps']
+  * test - runs unit tests (pytest) ['./runo tests --cov -vv', './runo tests --last-failed']
+  * build - builds the project ['./runo build']
+  * shell - debug container by running shell in interactive mode (keep container running) ['./runo shell']
+  * pre-commit - quick checks/fixes of code formatting (ruff/mypy) ['./runo pre-commit']
+  * update-deps - updates dependencies, used in project, to the latest versions ['./runo update-deps']
 ```
 
 You immediately see **WHAT** can be done in this repo and **HOW** it can be done.  
 Now, running build is as simple as:
 ```
-> ./rego build
+> ./runo build
 Buld is running
 done
 ```
 
 ## 🔀 Cross-Platforming
 But what if you want to perform build/tests/... for different platforms? 
-Not a problem, just ask `rego` to show all available containers and run
+Not a problem, just ask `runo` to show all available containers and run
 command in any of them as easy as that:
 ```
-> ./rego --containers
+> ./runo --containers
 Following containers are available:
   * Debian
   * Centos
   * RockyLinux
 
-> ./rego -c Debian build
+> ./runo -c Debian build
 Buld for Debian is running
 done
 ```
 
 or you can run command in all available containers:
 ```
-> ./rego -c "*" test
+> ./runo -c "*" test
 Running test for Debian
 PASSED
 Running test for Centos
@@ -69,15 +69,15 @@ Running test for RockyLinux
 PASSED
 ```
 
-## 🎯 Why use rego?
+## 🎯 Why use runo?
 - Standardized workflow across different repositories
 - Zero installation (just add 1 file to your repo)
-- `rego` need only Python and Docker. Both are present almost everywhere nowadays.
+- `runo` need only Python and Docker. Both are present almost everywhere nowadays.
 - Works across multiple platforms effortlessly
 
 ## 🚀 Quick start.
 
-Follow [this short instruction](docs/QUICK_START.md) to integrate rego into your project.  
+Follow [this short instruction](docs/QUICK_START.md) to integrate runo into your project.  
 In case of some problems, please feel free to contact author:
 - Email: anton.chivkunov@gmail.com
 

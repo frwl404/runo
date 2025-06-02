@@ -1,6 +1,6 @@
 [tool.ruff]
 # We want code to be formatted in a style of oldest Python version,
-# which rego supports (i.e. 3.6). But ruff supports only versions,
+# which runo supports (i.e. 3.6). But ruff supports only versions,
 # starting from 3.7, which is acceptable for us as well, because
 # it doesn't seem to break anything, test on Python3.6 are working.
 target-version = "py37"
