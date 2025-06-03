@@ -2,28 +2,42 @@
 
 ## 0. Requirements.
 
-runo was designed to work without any dependencies, 
+`runo` was designed to work without any dependencies, 
 requiring installation of additional components. 
-It needs only 1 (or 2) thing(s), which is/are almost 100% available
+It needs only 1 (or 2) things, which are almost certainly available
 on any development machine by default nowadays:
-- Python of any version, starting from Python3.6,
-- OPTIONALLY: Docker and/or docker compose (depends on your needs).
-
-Actually, you can start even without docker, if your repo doesn't use it.
-Docker is not needed for `runo` itself, but `runo` may run docker commands,
-if you will ask it. If you don't have anything, what should use docker,
-then it is not needed for `runo` as well.
+- Python of any version, starting from Python 3.6,
+- OPTIONALLY: Docker and/or docker compose (depends on your needs).  
+  Docker is not needed for `runo` itself, but `runo` may run docker commands,
+  if you will ask it.  
+  If you don't have anything, what should use docker, then it is not needed.
 
 ## 1. Integrate `runo` into your repository.
 
-Just copy [runo file](../runo) to root of your repository and make it executable
+Go to root of your repository and do one of two things:
+<details>
+<summary>Just copy file directly to you repo (and make it executable)</summary>
+
 ```
-> cd <root of your repo>
-> wget https://raw.githubusercontent.com/frwl404/runo/refs/heads/master/runo
-> chmod 755 runo
+wget https://raw.githubusercontent.com/frwl404/runo/refs/heads/master/runo &&\
+chmod 755 runo
 ```
-This way any new contributor will not need to install anything - everything is already in your repo.  
-At this moment you don't have any commands configured:
+</details>
+
+<details>
+<summary>Add as submodule</summary>
+
+```
+git submodule add git@github.com:frwl404/runo.git .runo &&\
+ln -s .runo/runo runo
+```
+</details>
+
+Both ways any new contributor will not need to install anything - 
+everything is already in your repo.  
+
+At this moment you already can run `runo`, but don't have 
+any commands configured yet:
 ```
 > ./runo 
 Config is not created yet.
