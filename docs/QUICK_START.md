@@ -19,7 +19,7 @@ then it is not needed for `runo` as well.
 Just copy [runo file](../runo) to root of your repository and make it executable
 ```
 > cd <root of your repo>
-> wget https://github.com/frwl404/runo/raw/refs/heads/main/runo
+> wget https://raw.githubusercontent.com/frwl404/runo/refs/heads/master/runo
 > chmod 755 runo
 ```
 This way any new contributor will not need to install anything - everything is already in your repo.  
