@@ -5,14 +5,14 @@
 ![Static Badge](https://img.shields.io/badge/supported_python-from_3.6_to_3.13-limegreen)
 
 ## 🔍 Problem: nowadays, every repo has its own development workflow
-When switching to a new repository, one of the first questions is: 
-*"How do I run build/lint/tests/... here?"*  
+When switching to a new repository, one of the first questions would be: 
+*"How to run build/lint/tests/... here?"*  
 
 Good repositories have documentation, explaining the procedure. 
 Ideally, they use **Docker**, so you don’t need to install anything, 
 but need to know right commands to start with. 
 However, the next repository you work on, will likely have a **different** 
-process - maybe also Docker-based, but still different.  
+process - maybe also Docker-based, but still different.
 
 **The result:**
 - Constantly learning/developing different workflows slows you down;
@@ -72,12 +72,17 @@ PASSED
 ## 🎯 Why use runo?
 - Standardized workflow across different repositories
 - Zero installation (just add 1 file to your repo)
-- `runo` need only Python and Docker. Both are present almost everywhere nowadays.
+- `runo` needs only Python, which is present almost everywhere nowadays.
 - Works across multiple platforms effortlessly
 
 ## 🚀 Quick start.
 
 Follow [this short instruction](docs/QUICK_START.md) to integrate runo into your project.  
 In case of some problems, please feel free to contact author:
-- Email: anton.chivkunov@gmail.com
+- Email: anton.chivkunov@gmail.com  
+
+_*If you are open-source project, hosted on github.com, want to try `runo`, but
+don't have enough time for integration, please contact me - I can prepare
+integration PR for your repo and you will need just to check how well it works 
+for you._
 
