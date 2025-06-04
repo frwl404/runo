@@ -20,7 +20,6 @@ process - maybe also Docker-based, but still different.
 - Might be needed to install different SW from repo to repo;
 - Too complex/unusual workflow may scare away new contributors.
 
-NOOOOOO
 
 ## ✅ Solution: `runo`
 Imagine you could enter **any repo** and immediately know **what** can 
