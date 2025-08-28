@@ -34,7 +34,9 @@ ln -s .runo/runo runo
 </details>
 
 Both ways any new contributor will not need to install anything - 
-everything is already in your repo.  
+everything is already in your repo, yet in second case they will also
+need to load submodule(s) with `git submodule update --init`.  
+I personally prefer first method.
 
 At this moment you already can run `runo`, but don't have 
 any commands configured yet:
